@@ -25,16 +25,16 @@ If it is missing and the current repository is `subagent-fleet`, install from th
 python -m pip install -e ".[dev]"
 ```
 
-If the user is in a different project, install from GitHub:
+If the user is in a different project, install from PyPI:
 
 ```bash
-python -m pip install "git+https://github.com/adityak74/subagent-fleet.git"
+python -m pip install subagent-fleet
 ```
 
 If the user prefers isolated CLI tools and has `pipx`, use:
 
 ```bash
-pipx install "git+https://github.com/adityak74/subagent-fleet.git"
+pipx install subagent-fleet
 ```
 
 ## Verify

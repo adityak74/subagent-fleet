@@ -82,16 +82,16 @@ Choose one of the install paths below.
 
 ### CLI from GitHub
 
-Install the CLI directly:
+Install the CLI directly from PyPI:
 
 ```bash
-python -m pip install "git+https://github.com/adityak74/subagent-fleet.git"
+python -m pip install subagent-fleet
 ```
 
 Or install it as an isolated command with `pipx`:
 
 ```bash
-pipx install "git+https://github.com/adityak74/subagent-fleet.git"
+pipx install subagent-fleet
 ```
 
 Verify:
@@ -134,7 +134,7 @@ Use the subagent-fleet bootstrap skill to install the CLI and set up this repo.
 The bootstrap skill will run or recommend:
 
 ```bash
-python -m pip install "git+https://github.com/adityak74/subagent-fleet.git"
+python -m pip install subagent-fleet
 subagent-fleet skills install
 ```
 
@@ -401,7 +401,7 @@ plugins/subagent-fleet/skills/subagent-fleet-operations/SKILL.md
 The bootstrap skill teaches Claude Code or Codex how to install the CLI:
 
 ```bash
-python -m pip install "git+https://github.com/adityak74/subagent-fleet.git"
+python -m pip install subagent-fleet
 ```
 
 and then install repo-local assistant skills:
