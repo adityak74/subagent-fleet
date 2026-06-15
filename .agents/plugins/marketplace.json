@@ -1,0 +1,20 @@
+{
+  "name": "subagent-fleet",
+  "interface": {
+    "displayName": "subagent-fleet"
+  },
+  "plugins": [
+    {
+      "name": "subagent-fleet",
+      "source": {
+        "source": "local",
+        "path": "./plugins/subagent-fleet"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "subagent-fleet",
+  "version": "0.1.0",
+  "description": "Run Claude Code-style subagents across your local Ollama and LiteLLM model fleet.",
+  "author": {
+    "name": "Aditya Karnam",
+    "url": "https://github.com/adityak74"
+  },
+  "homepage": "https://github.com/adityak74/subagent-fleet#readme",
+  "repository": "https://github.com/adityak74/subagent-fleet",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "claude-code",
+    "subagents",
+    "ollama",
+    "litellm",
+    "local-ai",
+    "python"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "subagent-fleet",
+    "shortDescription": "Configure local subagent fleets with Ollama and LiteLLM.",
+    "longDescription": "Run Claude Code-style subagents across your local Ollama and LiteLLM model fleet.",
+    "developerName": "Aditya Karnam",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/adityak74/subagent-fleet",
+    "defaultPrompt": [
+      "Install subagent-fleet and set up a local fleet.",
+      "Generate LiteLLM and Claude agent config.",
+      "Troubleshoot my local Ollama subagent routes."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

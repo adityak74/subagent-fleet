@@ -1,0 +1,20 @@
+{
+  "name": "subagent-fleet",
+  "version": "0.1.0",
+  "description": "Run Claude Code-style subagents across your local Ollama and LiteLLM model fleet.",
+  "author": {
+    "name": "Aditya Karnam",
+    "url": "https://github.com/adityak74"
+  },
+  "repository": "https://github.com/adityak74/subagent-fleet",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "subagents",
+    "ollama",
+    "litellm",
+    "local-ai",
+    "python"
+  ],
+  "homepage": "https://github.com/adityak74/subagent-fleet#readme"
+}

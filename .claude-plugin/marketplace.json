@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "subagent-fleet",
+  "description": "Marketplace for the subagent-fleet Claude Code plugin.",
+  "owner": {
+    "name": "Aditya Karnam",
+    "url": "https://github.com/adityak74"
+  },
+  "plugins": [
+    {
+      "name": "subagent-fleet",
+      "description": "Run Claude Code-style subagents across your local Ollama and LiteLLM model fleet.",
+      "author": {
+        "name": "Aditya Karnam",
+        "url": "https://github.com/adityak74"
+      },
+      "category": "development",
+      "source": "./plugins/subagent-fleet",
+      "homepage": "https://github.com/adityak74/subagent-fleet#readme"
+    }
+  ]
+}

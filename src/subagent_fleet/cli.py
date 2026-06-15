@@ -12,10 +12,21 @@ from subagent_fleet.config import ConfigError, FleetConfig, config_to_plain_dict
 from subagent_fleet.defaults import STARTER_FLEET_YAML
 from subagent_fleet.discovery import discovery_to_json, discover_fleet
 from subagent_fleet.generators import generate_claude_agents, generate_env_file, generate_litellm_config
+from subagent_fleet.plugins import PluginInstallError, install_plugin_marketplaces
+from subagent_fleet.skills import (
+    ASSISTANT_TARGETS,
+    BUNDLED_SKILLS,
+    SkillInstallError,
+    install_skills,
+)
 from subagent_fleet.status import get_status, routes_to_json
 from subagent_fleet.warmup import warmup_models
 
 app = typer.Typer(help="Run Claude Code-style subagents across your local model fleet.", no_args_is_help=True)
+skills_app = typer.Typer(help="Install assistant skills for using subagent-fleet.", no_args_is_help=True)
+plugins_app = typer.Typer(help="Install assistant plugin marketplace bundles.", no_args_is_help=True)
+app.add_typer(skills_app, name="skills")
+app.add_typer(plugins_app, name="plugins")
 console = Console()
 
 
@@ -233,6 +244,75 @@ def clean(out: Annotated[Path, typer.Option("--out", help="Output root to clean.
     for target in targets:
         target.unlink(missing_ok=True)
     console.print("Removed generated files.")
+
+
+@skills_app.command("list")
+def list_skills() -> None:
+    """List bundled skills and supported assistant targets."""
+    skill_table = Table(title="Bundled skills", show_header=True, header_style="bold")
+    skill_table.add_column("Skill")
+    skill_table.add_column("Description")
+    for skill in BUNDLED_SKILLS.values():
+        skill_table.add_row(skill.name, skill.description)
+    console.print(skill_table)
+
+    target_table = Table(title="Targets", show_header=True, header_style="bold")
+    target_table.add_column("Target")
+    target_table.add_column("Install Directory")
+    target_table.add_column("Description")
+    for target in ASSISTANT_TARGETS.values():
+        target_table.add_row(target.name, str(target.directory), target.description)
+    console.print(target_table)
+
+
+@skills_app.command("install")
+def install_assistant_skills(
+    out: Annotated[Path, typer.Option("--out", help="Project root or output directory.")] = Path("."),
+    target: Annotated[
+        list[str] | None,
+        typer.Option("--target", "-t", help="Assistant target: all, claude-code, codex, opencode. Can be repeated or comma-separated."),
+    ] = None,
+    skill: Annotated[
+        list[str] | None,
+        typer.Option("--skill", "-s", help="Bundled skill: all, subagent-fleet-setup, subagent-fleet-operations. Can be repeated or comma-separated."),
+    ] = None,
+    force: Annotated[bool, typer.Option("--force", help="Overwrite existing installed skill files.")] = False,
+) -> None:
+    """Install bundled assistant skills for Claude Code, Codex, OpenCode, or all targets."""
+    try:
+        results = install_skills(output_root=out, targets=target or ["all"], skills=skill or ["all"], force=force)
+    except (FileExistsError, SkillInstallError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    console.print("Installed skills:")
+    for result in results:
+        console.print(f"  {result.target}: {result.skill} -> {result.path}")
+
+
+@plugins_app.command("install")
+def install_assistant_plugins(
+    out: Annotated[Path, typer.Option("--out", help="Marketplace root or output directory.")] = Path("."),
+    target: Annotated[
+        list[str] | None,
+        typer.Option("--target", "-t", help="Plugin target: all, claude-code, codex. Can be repeated or comma-separated."),
+    ] = None,
+    force: Annotated[bool, typer.Option("--force", help="Overwrite existing plugin marketplace files.")] = False,
+) -> None:
+    """Install Claude Code and Codex plugin marketplace bundles."""
+    try:
+        results = install_plugin_marketplaces(output_root=out, targets=target or ["all"], force=force)
+    except (FileExistsError, PluginInstallError) as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    console.print("Installed plugin marketplace files:")
+    for result in results:
+        console.print(f"  {result.target}: {result.path}")
+    console.print("\nPlugin skills included:")
+    console.print("  subagent-fleet-bootstrap")
+    console.print("  subagent-fleet-setup")
+    console.print("  subagent-fleet-operations")
 
 
 def _print_routes(routes: list[object]) -> None:
