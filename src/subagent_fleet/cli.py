@@ -1,0 +1,251 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Annotated
+
+import typer
+from rich.console import Console
+from rich.table import Table
+
+from subagent_fleet.config import ConfigError, FleetConfig, config_to_plain_dict, load_config
+from subagent_fleet.defaults import STARTER_FLEET_YAML
+from subagent_fleet.discovery import discovery_to_json, discover_fleet
+from subagent_fleet.generators import generate_claude_agents, generate_env_file, generate_litellm_config
+from subagent_fleet.status import get_status, routes_to_json
+from subagent_fleet.warmup import warmup_models
+
+app = typer.Typer(help="Run Claude Code-style subagents across your local model fleet.", no_args_is_help=True)
+console = Console()
+
+
+def _load_or_exit(path: Path) -> FleetConfig:
+    try:
+        return load_config(path)
+    except ConfigError as exc:
+        console.print(f"[red]Invalid {path}:[/red]\n\n{exc}")
+        raise typer.Exit(1) from exc
+
+
+@app.command()
+def init(
+    output: Annotated[Path, typer.Option("--output", help="Path to write the starter fleet config.")] = Path("fleet.yaml"),
+    force: Annotated[bool, typer.Option("--force", help="Overwrite an existing config file.")] = False,
+) -> None:
+    """Create a starter fleet.yaml."""
+    if output.exists() and not force:
+        console.print(f"[red]{output} already exists. Use --force to overwrite.[/red]")
+        raise typer.Exit(1)
+    output.write_text(STARTER_FLEET_YAML)
+    console.print(f"Created {output}")
+    console.print("\nEdit it with your Ollama node endpoints, then run:\n")
+    console.print("  subagent-fleet discover")
+    console.print("  subagent-fleet generate")
+
+
+@app.command()
+def validate(config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml")) -> None:
+    """Validate fleet.yaml."""
+    fleet = _load_or_exit(config)
+    console.print(f"{config} is valid.")
+    for warning in fleet.alias_warnings():
+        console.print(f"[yellow]Warning:[/yellow] {warning}")
+
+
+@app.command()
+def discover(
+    config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
+    as_json: Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")] = False,
+    write: Annotated[bool, typer.Option("--write", help="Write .subagent-fleet/discovery.json.")] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Show connection errors for offline nodes.")] = False,
+) -> None:
+    """Discover models available on configured Ollama nodes."""
+    fleet = _load_or_exit(config)
+    results = discover_fleet(fleet)
+    payload = {"fleet": fleet.project.name, "nodes": discovery_to_json(results)}
+
+    if write:
+        discovery_path = Path(".subagent-fleet/discovery.json")
+        discovery_path.parent.mkdir(parents=True, exist_ok=True)
+        discovery_path.write_text(json.dumps(payload, indent=2) + "\n")
+
+    if as_json:
+        console.print(json.dumps(payload, indent=2))
+        return
+
+    console.print(f"Fleet: {fleet.project.name}\n")
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Node")
+    table.add_column("Status")
+    table.add_column("Models")
+    if verbose:
+        table.add_column("Error")
+    for result in results:
+        status = "[green]online[/green]" if result.online else "[red]offline[/red]"
+        row = [result.name, status, ", ".join(result.models) if result.models else "-"]
+        if verbose:
+            row.append(result.error or "")
+        table.add_row(*row)
+    console.print(table)
+    if write:
+        console.print(f"\nWrote {discovery_path}")
+
+
+@app.command()
+def generate(
+    config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
+    out: Annotated[Path, typer.Option("--out", help="Output root.")] = Path("."),
+    litellm_only: Annotated[bool, typer.Option("--litellm-only", help="Only generate LiteLLM config.")] = False,
+    claude_only: Annotated[bool, typer.Option("--claude-only", help="Only generate Claude agent files.")] = False,
+    force: Annotated[bool, typer.Option("--force", help="Overwrite generated files.")] = False,
+) -> None:
+    """Generate LiteLLM, Claude Code agent, and environment files."""
+    if litellm_only and claude_only:
+        console.print("[red]Use at most one of --litellm-only or --claude-only.[/red]")
+        raise typer.Exit(1)
+
+    fleet = _load_or_exit(config)
+    source = str(config)
+    generated: list[Path] = []
+    try:
+        if not claude_only:
+            generated.append(generate_litellm_config(fleet, out / "litellm_config.yaml", source=source, force=force))
+        if not litellm_only:
+            generated.extend(generate_claude_agents(fleet, out / ".claude" / "agents", source=source, force=force))
+            if not claude_only:
+                generated.append(generate_env_file(fleet, out / ".env.subagent-fleet", source=source, force=force))
+    except FileExistsError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    console.print("Generated:")
+    for path in generated:
+        console.print(f"  {path}")
+    if not claude_only:
+        console.print("\nStart LiteLLM with:")
+        console.print(f"  litellm --config {out / 'litellm_config.yaml'} --host {fleet.project.gateway.host} --port {fleet.project.gateway.port}")
+    if not litellm_only and not claude_only:
+        console.print("\nThen run:")
+        console.print("  source .env.subagent-fleet")
+        console.print("  claude")
+    for warning in fleet.alias_warnings():
+        console.print(f"[yellow]Warning:[/yellow] {warning}")
+
+
+@app.command()
+def warmup(
+    config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
+    model: Annotated[str | None, typer.Option("--model", help="Only warm this configured model name.")] = None,
+    agent: Annotated[str | None, typer.Option("--agent", help="Only warm the model used by this agent.")] = None,
+) -> None:
+    """Preload configured Ollama models."""
+    fleet = _load_or_exit(config)
+    try:
+        results = warmup_models(fleet, model_name=model, agent_name=agent)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+
+    console.print("Warming models:\n")
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Model")
+    table.add_column("Node")
+    table.add_column("Ollama Model")
+    table.add_column("Status")
+    for result in results:
+        table.add_row(
+            result.model_name,
+            result.node_name,
+            result.ollama_model,
+            "[green]ok[/green]" if result.ok else f"[red]failed[/red] {result.error}",
+        )
+    console.print(table)
+    if any(not result.ok for result in results):
+        raise typer.Exit(1)
+
+
+@app.command()
+def status(
+    config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
+    as_json: Annotated[bool, typer.Option("--json", help="Print machine-readable JSON.")] = False,
+) -> None:
+    """Show node status and agent routing."""
+    fleet = _load_or_exit(config)
+    nodes, routes = get_status(fleet)
+    if as_json:
+        console.print(
+            json.dumps(
+                {
+                    "fleet": fleet.project.name,
+                    "nodes": discovery_to_json(nodes),
+                    "routes": routes_to_json(routes),
+                },
+                indent=2,
+            )
+        )
+        return
+
+    console.print(f"Fleet: {fleet.project.name}\n")
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Node")
+    table.add_column("Status")
+    table.add_column("Endpoint")
+    table.add_column("Models")
+    for node in nodes:
+        table.add_row(
+            node.name,
+            "[green]online[/green]" if node.online else "[red]offline[/red]",
+            node.endpoint,
+            ", ".join(node.models) if node.models else "-",
+        )
+    console.print(table)
+    _print_routes(routes)
+
+
+@app.command()
+def doctor(config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml")) -> None:
+    """Validate config and print local-network security guidance."""
+    fleet = _load_or_exit(config)
+    console.print(f"{config} is valid.")
+    console.print("\nSecurity checks:")
+    console.print("- Do not expose Ollama directly to the public internet.")
+    console.print("- Do not expose LiteLLM without authentication.")
+    console.print("- Prefer LAN, firewall rules, Tailscale, or WireGuard.")
+    console.print(f"- Use a non-default {fleet.project.gateway.master_key_env} beyond local dev.")
+    console.print("\nOllama worker setup hint:")
+    console.print('  launchctl setenv OLLAMA_HOST "0.0.0.0:11434"')
+    console.print('  launchctl setenv OLLAMA_KEEP_ALIVE "-1"')
+    console.print('  launchctl setenv OLLAMA_NUM_PARALLEL "1"')
+    console.print('  launchctl setenv OLLAMA_MAX_LOADED_MODELS "1"')
+
+
+@app.command()
+def clean(out: Annotated[Path, typer.Option("--out", help="Output root to clean.")] = Path("."), force: bool = False) -> None:
+    """Remove generated files from an output root."""
+    targets = [out / "litellm_config.yaml", out / ".env.subagent-fleet"]
+    targets.extend((out / ".claude" / "agents").glob("*.md") if (out / ".claude" / "agents").exists() else [])
+    if not force:
+        console.print("Files that would be removed:")
+        for target in targets:
+            console.print(f"  {target}")
+        console.print("\nRun with --force to remove them.")
+        return
+    for target in targets:
+        target.unlink(missing_ok=True)
+    console.print("Removed generated files.")
+
+
+def _print_routes(routes: list[object]) -> None:
+    console.print("\nAgent routing:\n")
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Agent")
+    table.add_column("Node")
+    table.add_column("Ollama Model")
+    table.add_column("LiteLLM Alias")
+    for route in routes:
+        table.add_row(route.agent, route.node, route.ollama_model, route.litellm_alias)
+    console.print(table)
+
+
+if __name__ == "__main__":
+    app()

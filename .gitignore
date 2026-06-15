@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+dist/
+build/
+*.egg-info/
+
+# Local generated outputs
+fleet.yaml
+litellm_config.yaml
+.env.subagent-fleet
+.subagent-fleet/
+.claude/agents/

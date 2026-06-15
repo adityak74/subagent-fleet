@@ -76,26 +76,38 @@ nodes:
     tags: [small, planner, summarizer]
 ```
 
-Then map agents to models:
+Then define models and map agents to those models:
 
 ```yaml
+models:
+  heavy-coder:
+    node: m4-mini-64gb
+    ollama_model: qwen2.5-coder:32b
+    litellm_alias: claude-sonnet-local
+    context: 32768
+    timeout: 600
+
+  small-coder:
+    node: m4-mini-16gb
+    ollama_model: qwen2.5-coder:7b
+    litellm_alias: claude-haiku-local
+    context: 8192
+    timeout: 300
+
 agents:
   planner:
-    node: m4-mini-16gb
-    model: qwen2.5-coder:7b
-    alias: claude-haiku-local
+    model: small-coder
+    description: Use for planning, file discovery, task decomposition, and summarization.
     tools: [Read, Grep, Glob]
 
   implementer:
-    node: m4-mini-64gb
-    model: qwen2.5-coder:32b
-    alias: claude-sonnet-local
+    model: heavy-coder
+    description: Use for implementation, bug fixes, refactors, and patch creation.
     tools: [Read, Grep, Glob, Edit, MultiEdit, Bash]
 
   reviewer:
-    node: m4-mini-64gb
-    model: qwen2.5-coder:32b
-    alias: claude-sonnet-local
+    model: heavy-coder
+    description: Use after implementation to review diffs, tests, regressions, and maintainability.
     tools: [Read, Grep, Glob, Bash]
 ```
 
@@ -146,19 +158,28 @@ litellm_config.yaml
 
 ## Status
 
-Early project.
+MVP CLI implemented.
 
-The first target is a practical MVP:
+Install locally for development:
 
-```text
+```bash
+python -m pip install -e ".[dev]"
+```
+
+Quickstart:
+
+```bash
 subagent-fleet init
+subagent-fleet validate
 subagent-fleet discover
 subagent-fleet generate
 subagent-fleet warmup
 subagent-fleet status
 ```
 
-## Planned CLI
+The `discover`, `status`, and `warmup` commands contact the Ollama endpoints listed in `fleet.yaml`. Offline or unreachable nodes are reported without crashing the whole command.
+
+## CLI
 
 ```bash
 subagent-fleet init
@@ -177,6 +198,12 @@ subagent-fleet discover
 Finds Ollama nodes and models.
 
 ```bash
+subagent-fleet validate
+```
+
+Validates `fleet.yaml`.
+
+```bash
 subagent-fleet generate
 ```
 
@@ -193,6 +220,18 @@ subagent-fleet status
 ```
 
 Shows node health, loaded models, latency, and routing.
+
+```bash
+subagent-fleet doctor
+```
+
+Shows config validity, local-network security guidance, and Ollama worker setup hints.
+
+```bash
+subagent-fleet clean
+```
+
+Lists or removes generated files.
 
 ## Example `fleet.yaml`
 
@@ -455,14 +494,14 @@ It is a workflow layer for local agent orchestration.
 
 ### MVP
 
-- [ ] `fleet.yaml` schema
-- [ ] Ollama node health checks
-- [ ] Ollama model discovery via `/api/tags`
-- [ ] Generate `litellm_config.yaml`
-- [ ] Generate `.claude/agents/*.md`
-- [ ] Generate shell environment file
-- [ ] Warm up models with `keep_alive`
-- [ ] Show status table
+- [x] `fleet.yaml` schema
+- [x] Ollama node health checks
+- [x] Ollama model discovery via `/api/tags`
+- [x] Generate `litellm_config.yaml`
+- [x] Generate `.claude/agents/*.md`
+- [x] Generate shell environment file
+- [x] Warm up models with `keep_alive`
+- [x] Show status table
 
 ### Next
 
