@@ -66,14 +66,15 @@ class ProjectConfig(BaseModel):
 class NodeConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    endpoint: AnyHttpUrl
+    endpoint: AnyHttpUrl | None = None
+    cloud_provider: str | None = None
     provider: str = "ollama"
     tags: list[str] = Field(default_factory=list)
     wake_on_lan: str | None = None
 
     @property
     def endpoint_str(self) -> str:
-        return str(self.endpoint).rstrip("/")
+        return str(self.endpoint).rstrip("/") if self.endpoint else ""
 
 
 class ModelConfig(BaseModel):
@@ -87,9 +88,6 @@ class ModelConfig(BaseModel):
     max_parallel: int = Field(default=1, gt=0)
     fallback: str | None = None
     context_pool: str | None = None
-    context_pool: str | None = None
-    fallback: str | None = None
-    fallback: str | None = None
 
 
 class McpServerConfig(BaseModel):

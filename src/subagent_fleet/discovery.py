@@ -57,6 +57,8 @@ def get_loaded_models(endpoint: str, timeout: float = 5.0) -> list[str]:
 
 
 def discover_node(name: str, node: NodeConfig, timeout: float = 5.0, include_loaded: bool = False) -> NodeDiscovery:
+    if node.cloud_provider:
+        return NodeDiscovery(name=name, endpoint="cloud", online=True, models=["*"])
     endpoint = node.endpoint_str
     try:
         start = httpx.Timeout(timeout)

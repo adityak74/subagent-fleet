@@ -5,12 +5,16 @@ model_list:
 {% for model_name, model in models.items() %}
   - model_name: {{ model.litellm_alias }}
     litellm_params:
-      {%- if nodes[model.node].provider == 'ollama' %}
+{%- if nodes[model.node].cloud_provider %}
+      model: {{ nodes[model.node].cloud_provider }}/{{ model.ollama_model }}
+{%- elif nodes[model.node].provider == 'ollama' %}
       model: ollama_chat/{{ model.ollama_model }}
 {%- else %}
       model: openai/{{ model.ollama_model }}
 {%- endif %}
+{%- if nodes[model.node].endpoint_str %}
       api_base: {{ nodes[model.node].endpoint_str }}
+{%- endif %}
       api_key: ollama
       timeout: {{ model.timeout }}
 {%- if model.fallback and model.fallback in models %}
