@@ -104,12 +104,6 @@ class McpServerConfig(BaseModel):
     args: list[str] = Field(default_factory=list)
     env: dict[str, str] = Field(default_factory=dict)
 
-class McpServerConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    command: str
-    args: list[str] = Field(default_factory=list)
-    env: dict[str, str] = Field(default_factory=dict)
 
 class AgentConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -118,8 +112,10 @@ class AgentConfig(BaseModel):
     description: str
     tools: list[str] = Field(default_factory=list)
     prompt: str | None = None
-
-    @field_validator("prompt")
+    workspace: str = "host"
+    require_approval: bool = False
+    memory_namespace: str = "isolated"
+    shared_pool_id: str | None = None
     @classmethod
     def default_prompt(cls, value: str | None) -> str:
         if value is None or not value.strip():
