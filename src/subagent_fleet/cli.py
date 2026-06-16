@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Annotated
 
@@ -313,6 +314,47 @@ def install_assistant_plugins(
     console.print("  subagent-fleet-bootstrap")
     console.print("  subagent-fleet-setup")
     console.print("  subagent-fleet-operations")
+
+
+@app.command()
+def trace(
+    log_file: Annotated[Path, typer.Option("--log-file", help="Path to LiteLLM log file to stream.")] = Path("litellm.log"),
+) -> None:
+    """Stream and format LiteLLM logs to monitor subagent execution."""
+    if not log_file.exists():
+        console.print(f"[red]Log file {log_file} not found.[/red]")
+        console.print("Make sure to start LiteLLM with logging redirected to this file:")
+        console.print("  litellm --config litellm_config.yaml --detailed_debug > litellm.log 2>&1")
+        raise typer.Exit(1)
+        
+    console.print(f"[bold blue]Tracking subagent fleet activity from {log_file}...[/bold blue] (Press Ctrl+C to exit)\n")
+    
+    with open(log_file, "r") as f:
+        f.seek(0, 2) # go to end
+        try:
+            while True:
+                line = f.readline()
+                if not line:
+                    time.sleep(0.1)
+                    continue
+                
+                line = line.strip()
+                if not line:
+                    continue
+                
+                if "POST /v1/chat/completions" in line or "POST /chat/completions" in line:
+                    console.print(f"[green]→ Chat Request[/green] [dim]{line}[/dim]")
+                elif "200 OK" in line:
+                    console.print(f"[blue]← 200 OK[/blue] [dim]{line}[/dim]")
+                elif "Exception" in line or "Error" in line:
+                    console.print(f"[bold red]{line}[/bold red]")
+                elif "API Base" in line or "Model:" in line:
+                    console.print(f"[bold yellow]⚙ Routing:[/bold yellow] [yellow]{line}[/yellow]")
+                elif "litellm" in line.lower():
+                    console.print(f"[dim]{line}[/dim]")
+                    
+        except KeyboardInterrupt:
+            console.print("\n[bold]Stopped tracing.[/bold]")
 
 
 def _print_routes(routes: list[object]) -> None:

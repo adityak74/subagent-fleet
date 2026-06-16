@@ -16,6 +16,20 @@ model_list:
 litellm_settings:
   drop_params: true
   master_key: os.environ/{{ project.gateway.master_key_env }}
+{% set callbacks = [] %}
+{% if project.observability.langfuse %}{% set _ = callbacks.append('langfuse') %}{% endif %}
+{% if project.observability.langsmith %}{% set _ = callbacks.append('langsmith') %}{% endif %}
+{% if project.observability.opentelemetry %}{% set _ = callbacks.append('otel') %}{% endif %}
+{% if callbacks %}
+  success_callbacks:
+{% for cb in callbacks %}
+    - {{ cb }}
+{% endfor %}
+  failure_callbacks:
+{% for cb in callbacks %}
+    - {{ cb }}
+{% endfor %}
+{% endif %}
 
 router_settings:
   routing_strategy: simple-shuffle

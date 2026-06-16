@@ -46,11 +46,20 @@ class GatewayConfig(BaseModel):
     master_key_env: str = "LITELLM_MASTER_KEY"
 
 
+class ObservabilityConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    langfuse: bool = False
+    langsmith: bool = False
+    opentelemetry: bool = False
+
+
 class ProjectConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     name: str
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
+    observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
 
 
 class NodeConfig(BaseModel):
