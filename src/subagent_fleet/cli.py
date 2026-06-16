@@ -107,39 +107,81 @@ def discover(
 def generate(
     config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
     out: Annotated[Path, typer.Option("--out", help="Output root.")] = Path("."),
+    target: Annotated[
+        list[str] | None, 
+        typer.Option("--target", "-t", help="Generate configurations for specific targets: claude, aider. Can be repeated. Defaults to claude.")
+    ] = None,
     litellm_only: Annotated[bool, typer.Option("--litellm-only", help="Only generate LiteLLM config.")] = False,
-    claude_only: Annotated[bool, typer.Option("--claude-only", help="Only generate Claude agent files.")] = False,
+    claude_only: Annotated[bool, typer.Option("--claude-only", help="Only generate Claude agent files (deprecated, use --target claude).")] = False,
     force: Annotated[bool, typer.Option("--force", help="Overwrite generated files.")] = False,
 ) -> None:
-    """Generate LiteLLM, Claude Code agent, and environment files."""
+    """Generate LiteLLM, Claude Code, and Aider configuration files."""
     if litellm_only and claude_only:
         console.print("[red]Use at most one of --litellm-only or --claude-only.[/red]")
         raise typer.Exit(1)
 
+    targets = [t.lower() for t in (target or [])]
+    if claude_only and "claude" not in targets:
+        targets.append("claude")
+    if not targets:
+        targets = ["claude"]
+
     fleet = _load_or_exit(config)
     source = str(config)
     generated: list[Path] = []
+    
+    from subagent_fleet.generators.aider import generate_aider_config
+    
     try:
-        if not claude_only:
+        if not claude_only and "claude" in targets and not litellm_only:
+            # We generate litellm for both claude and aider if not litellm_only/claude_only
             generated.append(generate_litellm_config(fleet, out / "litellm_config.yaml", source=source, force=force))
-        if not litellm_only:
+        elif "aider" in targets and not litellm_only:
+            generated.append(generate_litellm_config(fleet, out / "litellm_config.yaml", source=source, force=force))
+        elif litellm_only:
+            generated.append(generate_litellm_config(fleet, out / "litellm_config.yaml", source=source, force=force))
+
+        if "claude" in targets and not litellm_only:
             generated.extend(generate_claude_agents(fleet, out / ".claude" / "agents", source=source, force=force))
-            if not claude_only:
-                generated.append(generate_env_file(fleet, out / ".env.subagent-fleet", source=source, force=force))
+            generated.append(generate_env_file(fleet, out / ".env.subagent-fleet", source=source, force=force))
+            
+        if "aider" in targets and not litellm_only:
+            generated.extend(generate_aider_config(fleet, out, source=source, force=force))
+            
     except FileExistsError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(1) from exc
 
+    # Remove duplicates from generated list while preserving order
+    seen = set()
+    generated_unique = []
+    for p in generated:
+        if p not in seen:
+            seen.add(p)
+            generated_unique.append(p)
+    generated = generated_unique
+
     console.print("Generated:")
     for path in generated:
         console.print(f"  {path}")
-    if not claude_only:
-        console.print("\nStart LiteLLM with:")
-        console.print(f"  litellm --config {out / 'litellm_config.yaml'} --host {fleet.project.gateway.host} --port {fleet.project.gateway.port}")
-    if not litellm_only and not claude_only:
-        console.print("\nThen run:")
+        
+    if litellm_only:
+        return
+        
+    console.print("\nStart LiteLLM with:")
+    console.print(f"  litellm --config {out / 'litellm_config.yaml'} --host {fleet.project.gateway.host} --port {fleet.project.gateway.port}")
+    
+    if "claude" in targets:
+        console.print("\nThen for Claude Code run:")
         console.print("  source .env.subagent-fleet")
         console.print("  claude")
+        
+    if "aider" in targets:
+        console.print("\nThen for Aider run:")
+        console.print("  export OPENAI_API_KEY=ollama")
+        console.print(f"  export OPENAI_API_BASE=http://localhost:{fleet.project.gateway.port}/v1")
+        console.print("  aider")
+        
     for warning in fleet.alias_warnings():
         console.print(f"[yellow]Warning:[/yellow] {warning}")
 
