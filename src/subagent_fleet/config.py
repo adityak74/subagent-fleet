@@ -94,6 +94,13 @@ class McpServerConfig(BaseModel):
     args: list[str] = Field(default_factory=list)
     env: dict[str, str] = Field(default_factory=dict)
 
+class McpServerConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    command: str
+    args: list[str] = Field(default_factory=list)
+    env: dict[str, str] = Field(default_factory=dict)
+
 class AgentConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -117,6 +124,7 @@ class FleetConfig(BaseModel):
     nodes: dict[str, NodeConfig]
     models: dict[str, ModelConfig]
     agents: dict[str, AgentConfig]
+    mcp_servers: dict[str, McpServerConfig] = Field(default_factory=dict)
     mcp_servers: dict[str, McpServerConfig] = Field(default_factory=dict)
 
     @model_validator(mode="after")

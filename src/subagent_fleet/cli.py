@@ -145,6 +145,16 @@ def generate(
             generated.extend(generate_claude_agents(fleet, out / ".claude" / "agents", source=source, force=force))
             generated.append(generate_env_file(fleet, out / ".env.subagent-fleet", source=source, force=force))
             
+            from subagent_fleet.generators.mcp import generate_mcp_config
+            mcp_paths = generate_mcp_config(fleet, out, source=source, force=force)
+            if mcp_paths:
+                generated.extend(mcp_paths)
+            
+            from subagent_fleet.generators.mcp import generate_mcp_config
+            mcp_paths = generate_mcp_config(fleet, out, source=source, force=force)
+            if mcp_paths:
+                generated.extend(mcp_paths)
+            
         if "aider" in targets and not litellm_only:
             generated.extend(generate_aider_config(fleet, out, source=source, force=force))
             
