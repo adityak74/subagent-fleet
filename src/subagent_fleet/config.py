@@ -82,6 +82,8 @@ class ModelConfig(BaseModel):
     context: int = Field(default=8192, gt=0)
     timeout: int = Field(default=300, gt=0)
     max_parallel: int = Field(default=1, gt=0)
+    fallback: str | None = None
+    fallback: str | None = None
 
 
 class AgentConfig(BaseModel):
@@ -117,6 +119,10 @@ class FleetConfig(BaseModel):
         for model_name, model in self.models.items():
             if model.node not in self.nodes:
                 raise ValueError(f"models.{model_name}.node references unknown node: {model.node}")
+            if model.fallback and model.fallback not in self.models:
+                raise ValueError(f"models.{model_name}.fallback references unknown model: {model.fallback}")
+            if model.fallback and model.fallback not in self.models:
+                raise ValueError(f"models.{model_name}.fallback references unknown model: {model.fallback}")
 
         for agent_name, agent in self.agents.items():
             if not AGENT_NAME_RE.fullmatch(agent_name):
