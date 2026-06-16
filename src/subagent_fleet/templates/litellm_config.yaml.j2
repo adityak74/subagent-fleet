@@ -5,7 +5,11 @@ model_list:
 {% for model_name, model in models.items() %}
   - model_name: {{ model.litellm_alias }}
     litellm_params:
+      {%- if nodes[model.node].provider == 'ollama' %}
       model: ollama_chat/{{ model.ollama_model }}
+{%- else %}
+      model: openai/{{ model.ollama_model }}
+{%- endif %}
       api_base: {{ nodes[model.node].endpoint_str }}
       api_key: ollama
       timeout: {{ model.timeout }}

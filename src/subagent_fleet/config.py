@@ -66,6 +66,7 @@ class NodeConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     endpoint: AnyHttpUrl
+    provider: str = "ollama"
     tags: list[str] = Field(default_factory=list)
 
     @property
