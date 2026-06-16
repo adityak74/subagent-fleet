@@ -157,6 +157,11 @@ def generate(
             from subagent_fleet.generators.wol import generate_wol_hook
             generated.extend(generate_wol_hook(fleet, out, source=source, force=force))
             
+            from subagent_fleet.generators.security import generate_security_hook
+            sec_paths = generate_security_hook(fleet, out, source=source, force=force)
+            if sec_paths:
+                generated.extend(sec_paths)
+            
         if "aider" in targets and not litellm_only:
             generated.extend(generate_aider_config(fleet, out, source=source, force=force))
             

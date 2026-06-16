@@ -46,6 +46,12 @@ class GatewayConfig(BaseModel):
     master_key_env: str = "LITELLM_MASTER_KEY"
 
 
+class SecurityConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    zero_trust_a2a: bool = False
+
+
 class ObservabilityConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -59,6 +65,7 @@ class ProjectConfig(BaseModel):
 
     name: str
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
     observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
     dynamic_routing: bool = False
 
