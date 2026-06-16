@@ -69,6 +69,7 @@ class NodeConfig(BaseModel):
     endpoint: AnyHttpUrl
     provider: str = "ollama"
     tags: list[str] = Field(default_factory=list)
+    wake_on_lan: str | None = None
 
     @property
     def endpoint_str(self) -> str:
@@ -85,6 +86,8 @@ class ModelConfig(BaseModel):
     timeout: int = Field(default=300, gt=0)
     max_parallel: int = Field(default=1, gt=0)
     fallback: str | None = None
+    context_pool: str | None = None
+    context_pool: str | None = None
     fallback: str | None = None
     fallback: str | None = None
 
