@@ -17,6 +17,10 @@ model_list:
       fallbacks:
         - {{ models[model.fallback].litellm_alias }}
 {%- endif %}
+{%- if model.fallback and model.fallback in models %}
+      fallbacks:
+        - {{ models[model.fallback].litellm_alias }}
+{%- endif %}
     model_info:
       max_input_tokens: {{ model.context }}
 {% endfor %}

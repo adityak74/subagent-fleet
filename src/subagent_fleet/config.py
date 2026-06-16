@@ -84,7 +84,15 @@ class ModelConfig(BaseModel):
     max_parallel: int = Field(default=1, gt=0)
     fallback: str | None = None
     fallback: str | None = None
+    fallback: str | None = None
 
+
+class McpServerConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    command: str
+    args: list[str] = Field(default_factory=list)
+    env: dict[str, str] = Field(default_factory=dict)
 
 class AgentConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -109,6 +117,7 @@ class FleetConfig(BaseModel):
     nodes: dict[str, NodeConfig]
     models: dict[str, ModelConfig]
     agents: dict[str, AgentConfig]
+    mcp_servers: dict[str, McpServerConfig] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_references(self) -> "FleetConfig":
@@ -119,6 +128,8 @@ class FleetConfig(BaseModel):
         for model_name, model in self.models.items():
             if model.node not in self.nodes:
                 raise ValueError(f"models.{model_name}.node references unknown node: {model.node}")
+            if model.fallback and model.fallback not in self.models:
+                raise ValueError(f"models.{model_name}.fallback references unknown model: {model.fallback}")
             if model.fallback and model.fallback not in self.models:
                 raise ValueError(f"models.{model_name}.fallback references unknown model: {model.fallback}")
             if model.fallback and model.fallback not in self.models:
