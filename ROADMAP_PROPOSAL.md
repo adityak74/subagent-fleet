@@ -1,44 +1,59 @@
 # Future Roadmap Proposal for subagent-fleet
 
-Based on an analysis of community discussions (Reddit, HN, and the local LLM ecosystem) around multi-machine agent orchestration, Claude Code, and Aider, here is a proposed future roadmap for `subagent-fleet` to address the most requested features and pain points.
+*Updated: Mid-2026*
 
-## 1. Unified Observability & Tracing (High Priority)
-**The Problem:** Users report that debugging multi-agent, multi-machine workflows is extremely difficult. When a task hops from a planner on a Mac Mini to an implementer on a workstation, it creates a "blind spot."
-**The Solution:**
-- Generate OpenTelemetry or LangSmith/Langfuse configurations natively within the LiteLLM gateway setup.
-- Build a lightweight `subagent-fleet trace` terminal dashboard that streams logs from LiteLLM, showing exactly which machine is executing which subagent in real-time.
+With the core orchestration layer, Aider/Claude Code support, and basic distributed routing completed, `subagent-fleet` has solved the "how do I route agents to machines" problem. Based on current trends in the local AI community, the next frontier of challenges revolves around **efficiency, reliability, and safety** in multi-agent systems.
 
-## 2. Aider Configuration Generation (High Priority)
-**The Problem:** While Claude Code uses subagents, many local-first developers prefer **Aider** for its Git-first approach and its native "Architect / Editor" mode (where a heavy model plans and a fast local model edits).
-**The Solution:**
-- Add `subagent-fleet generate --target aider`.
-- Automatically generate `.aider.model.settings.yml` and routing configs that map the Aider "Architect" to a heavy node (e.g., 64GB Mac Studio) and the Aider "Editor" to a fast local node.
-
-## 3. Model Context Protocol (MCP) Integration (Medium Priority)
-**The Problem:** The community is rapidly adopting MCP to standardize how agents access tools. Users want agents on different machines to share access to the same tools seamlessly.
-**The Solution:**
-- Allow `fleet.yaml` to define MCP server endpoints.
-- When generating Claude Code agent configurations (`.claude/agents/*.md`), automatically inject the required MCP tool instructions and routing logic so remote subagents can trigger local MCP tools.
-
-## 4. State Persistence & Crash Recovery (Medium Priority)
-**The Problem:** If an agent running on an external workstation crashes midway through a complex implementation, the entire chain fails and context is lost.
-**The Solution:**
-- Implement state checkpointing configurations.
-- Allow `subagent-fleet` to generate fallback routes in LiteLLM (e.g., if the heavy workstation goes offline, fallback to a slower local model automatically without breaking the workflow).
-
-## 5. Dynamic "Task-Based" Routing (Long-Term)
-**The Problem:** Currently, `subagent-fleet` uses static routing (Agent A -> Model B). Users want a "Manager" agent that looks at a prompt and dynamically decides which node has the right capabilities for the task.
-**The Solution:**
-- Introduce a pre-routing classification agent in the LiteLLM proxy layer that analyzes the prompt complexity and routes it to either a fast node or a heavy node automatically, overriding static assignments if necessary.
-
-## 6. Integrations with Distributed Inference Engines (Long-Term)
-**The Problem:** Users want to pool VRAM across multiple machines (e.g., Distributed Ollama, Exo, or RPC llama.cpp) rather than just routing whole tasks to single machines.
-**The Solution:**
-- While `subagent-fleet` is an orchestration layer, it could add native discovery and health checks for `exo` or distributed `llama.cpp` clusters, generating the appropriate API base URLs for these unified endpoints.
+Here is the proposed roadmap for the next major iterations of `subagent-fleet`, complete with citations from the community.
 
 ---
 
-## Action Items for Next Release
-1. **Add Aider Support:** Update the generator to produce Aider configuration files alongside Claude Code markdown files.
-2. **Implement Fallback Generation:** Update `generators/litellm.py` to support `fallbacks` in `litellm_config.yaml` based on `fleet.yaml` definitions.
-3. **Build `subagent-fleet trace`:** A simple TUI using the `rich` library that hooks into LiteLLM's logging to show active agent runs across the fleet.
+## 1. Power Management & Wake-on-LAN (WoL) (High Priority)
+**The Demand:** As discussed frequently in `r/LocalLLaMA`, users are struggling with the electricity costs of running multi-GPU servers 24/7. High-end setups (like 3x Tesla P40s or dual RTX 4090s) can draw 116W+ just idling, whereas a Mac Mini idles at ~5W [1]. Users are currently hacking together custom "Wake Proxies" to suspend their heavy GPU nodes until an API request comes in [2].
+**The Solution:**
+- Introduce a `wake_on_lan` configuration block in `fleet.yaml` for specific nodes.
+- When LiteLLM receives a request bound for a sleeping node, `subagent-fleet` intercepts the request, sends a Magic Packet to wake the machine, waits for a heartbeat, and then forwards the request.
+- **Citations:**
+  - [1] *r/LocalLLaMA discussions on cluster power consumption (2025/2026).*
+  - [2] *Community workarounds utilizing KEDA/Kubesnooze or custom Raspberry Pi proxies for Ollama.*
+
+## 2. Isolated Execution Workspaces (Sandboxing) (High Priority)
+**The Demand:** Developers scaling multi-agent systems report that having multiple autonomous agents (like Claude Code or Aider) run shell commands in the same repository leads to conflicting edits, broken environments, and "debugging chaos" [3]. There is a growing demand for features akin to VS Code's "Agent HQ", which spins up dedicated Git worktrees for agents [4].
+**The Solution:**
+- Add a `subagent-fleet workspace` feature that automatically maps local subagents into isolated Docker containers or temporary Git Worktrees.
+- When an agent is routed to a specific node, it operates within a temporary clone. Once the reviewer agent approves the changes, they are merged back.
+- **Citations:**
+  - [3] *r/LLMDevs & r/LocalLLaMA discussions on multi-agent "glue code" and environment contamination.*
+  - [4] *Emerging industry standards for agent isolation (e.g., Microsoft Agent Framework).*
+
+## 3. Human-in-the-Loop (HITL) Middleware (Medium Priority)
+**The Demand:** Users suffer from "black box" execution fear. A common failure mode is an early "researcher/planner" agent hallucinating a bad plan, which cascades to an implementer agent that writes hundreds of lines of useless code [5]. The community is actively requesting standardized "hook points" to validate agent plans *before* execution [6].
+**The Solution:**
+- Implement deterministic pause hooks natively in the LiteLLM/subagent-fleet proxy. 
+- Allow users to define `require_approval: true` in `fleet.yaml` for specific agents. The trace dashboard will pause execution and await a "Y/N" keystroke from the developer before passing the plan forward.
+- **Citations:**
+  - [5] *r/LocalLLaMA threads on error propagation in long-running autonomous chains.*
+  - [6] *Requests for standard Human-in-the-Loop middleware in open-source orchestrators.*
+
+## 4. Fleet Benchmarking & Evals (Medium Priority)
+**The Demand:** Users are guessing their model allocations (e.g., "Is an 8B model enough for this task, or do I need to wake up the 70B model?"). There is a lack of localized, workflow-specific evaluation tools for clustered Ollama instances.
+**The Solution:**
+- Build a `subagent-fleet eval` command.
+- Users provide a small JSONL dataset of their own prompts. The CLI runs these against different models in the fleet and generates a benchmark report, helping users mathematically optimize their node assignments.
+
+## 5. Visual Fleet Topology Dashboard (Long-Term)
+**The Demand:** As users build systems with 10+ agents across 5+ machines using cyclic workflows (like LangGraph), CLI YAML configurations become too difficult to visualize and manage.
+**The Solution:**
+- A lightweight local web UI (React + FastAPI) that visualizes the `fleet.yaml` as a node graph. 
+- Users can drag-and-drop agents onto different machines, monitor live VRAM usage, and view live trace paths.
+
+---
+
+## ✅ Recently Completed
+The following highly requested features have been successfully implemented and released in v0.0.4 - v0.0.7:
+- **Unified Observability:** Langfuse, LangSmith, OTel integration and live `trace` TUI.
+- **Aider Integration:** Native mapping of Architect/Editor modes.
+- **MCP Generation:** Automatic `mcp.json` generation for tool sharing.
+- **Distributed Inference (v1):** Discovery and routing for non-Ollama engines (vLLM, Exo, llama.cpp RPC).
+- **Dynamic Routing:** Semantic python hooks to override static assignments based on prompt complexity.
+- **State Persistence:** Automatic failover generation if heavy nodes go offline.
