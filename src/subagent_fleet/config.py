@@ -60,6 +60,7 @@ class ProjectConfig(BaseModel):
     name: str
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
+    dynamic_routing: bool = False
 
 
 class NodeConfig(BaseModel):

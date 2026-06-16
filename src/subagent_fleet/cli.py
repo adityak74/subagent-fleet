@@ -150,10 +150,18 @@ def generate(
             if mcp_paths:
                 generated.extend(mcp_paths)
             
+            if fleet.project.dynamic_routing:
+                from subagent_fleet.generators.router import generate_router_script
+                generated.extend(generate_router_script(fleet, out, source=source, force=force))
+            
             from subagent_fleet.generators.mcp import generate_mcp_config
             mcp_paths = generate_mcp_config(fleet, out, source=source, force=force)
             if mcp_paths:
                 generated.extend(mcp_paths)
+            
+            if fleet.project.dynamic_routing:
+                from subagent_fleet.generators.router import generate_router_script
+                generated.extend(generate_router_script(fleet, out, source=source, force=force))
             
         if "aider" in targets and not litellm_only:
             generated.extend(generate_aider_config(fleet, out, source=source, force=force))
