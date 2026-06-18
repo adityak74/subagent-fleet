@@ -1,53 +1,60 @@
-# Future Roadmap Proposal for subagent-fleet (Generation 3)
+# Future Roadmap Proposal for subagent-fleet (Generation 4)
 
-*Updated: Late 2026*
+*Updated: Early 2027 Projections*
 
-With the core orchestration layer, Aider/Claude Code support, and advanced features (WoL, Sandboxing, HITL) completed in `v0.1.2`, `subagent-fleet` has matured into a production-grade local coordinator. 
+With Generation 3 successfully released (KV Cache Sharing, Hybrid Routing, Zero-Trust A2A Security, and Namespaced Memory), `subagent-fleet` has resolved the major bottlenecks of structured, hierarchical agent workflows. 
 
-Based on the latest trends and pain points discussed in `r/LocalLLaMA` and the broader AI community, the "Generation 3" frontier focuses heavily on **token efficiency, zero-trust security, and hybrid deployments**.
+However, looking ahead at bleeding-edge research and power-user discussions across the `r/LocalLLaMA` and `r/LLMDevs` communities, the paradigm is shifting again. The rigid "Supervisor -> Worker" model is giving way to **decentralized, peer-to-peer swarm intelligence**. 
 
-Here is the proposed roadmap for the next evolution of `subagent-fleet`, complete with citations from the community.
-
----
-
-## 1. Cross-Agent KV Cache Sharing (High Priority)
-**The Demand:** Multi-agent systems are "token eaters." A research-style swarm can burn 15x more tokens than a single-agent interaction [1]. If a planner agent reads a massive 100k-token repository, the implementer agent currently has to re-ingest that entire context, burning massive amounts of compute and time. The community is requesting frameworks that allow agents to share a "base" KV cache (from a shared model backbone) to save VRAM and eliminate redundant pre-filling [2].
-**The Solution:**
-- Implement deep integration with engines like **vLLM** and **TensorRT-LLM** that support prefix caching.
-- Add a `context_pool` feature in `fleet.yaml` that allows agents running on the *same node* to share their prompt context automatically, slashing time-to-first-token (TTFT) for chained tasks.
-- **Citations:**
-  - [1] *r/LocalLLaMA discussions on "Context Debt and Token Burn" in multi-agent orchestration.*
-  - [2] *Emerging frameworks like TokenDance and LRAgent pushing for multi-LoRA KV sharing.*
-
-## 2. Hybrid Cloud "Tiered" Routing (High Priority)
-**The Demand:** Enterprises and power users want a "Local Orchestrator + Cloud Frontier" model. They want orchestrators capable of routing PII-sensitive or trivial tasks to local models (e.g., Llama-4-8B on an M4 Mac) while delegating highly complex architectural reasoning to cloud models (e.g., Claude 3.7 or GPT-5) [3].
-**The Solution:**
-- Update `subagent-fleet` discovery to support external cloud providers (Anthropic, OpenAI) via the LiteLLM gateway.
-- Allow agents in `fleet.yaml` to specify fallback cascades: e.g., `model: claude-3-7-sonnet`, `fallback: heavy-local-coder`. If the cloud provider goes down or limits rate usage, the fleet seamlessly fails over to the local multi-GPU server.
-- **Citations:**
-  - [3] *Discussions in r/LLMDevs on the economics and privacy compliance (ISO 42001) of Edge Hybrid architectures.*
-
-## 3. Zero-Trust Agent-to-Agent (A2A) Security (Medium Priority)
-**The Demand:** As agents dynamically delegate tasks, the "least-privilege principle" becomes difficult to enforce. A single hallucinated or compromised agent (e.g., via prompt injection from a malicious PR) can propagate unauthorized access across the entire swarm, potentially executing malicious bash commands [4].
-**The Solution:**
-- Introduce a **Zero-Trust Message Bus** within the subagent-fleet proxy.
-- Before a message is passed from a `researcher` agent to an `implementer` agent, `subagent-fleet` intercepts and sanitizes the inter-agent payload to prevent multi-hop prompt injection.
-- Add Role-Based Access Control (RBAC) definitions in `fleet.yaml`, explicitly defining which agents are allowed to invoke specific tools or MCP servers.
-- **Citations:**
-  - [4] *Industry security reports (e.g., Knostic AI) and community concerns on malicious A2A prompt injections.*
-
-## 4. Namespaced Agent Memory & RAG (Medium Priority)
-**The Demand:** Long-running agent fleets suffer from "context bleed" when using a single global shared memory pool. Conflicting instructions or stale facts from one agent disrupt the logic of another [5]. Users want isolated SQLite databases per agent, with strictly "opt-in" shared memory channels [6].
-**The Solution:**
-- Build a lightweight, native SQLite memory manager in `subagent-fleet`.
-- Configure `memory_namespace: isolated` or `shared_pool_id` in `fleet.yaml`. This ensures the `planner` agent has a dedicated scratchpad that the `reviewer` agent cannot accidentally overwrite, while still allowing them to push final decisions to a common bulletin board.
-- **Citations:**
-  - [5] *GitHub feature requests on projects like Mem0 and Hermes Agent regarding isolated memory databases.*
-  - [6] *r/LocalLLaMA threads on race conditions in cyclic multi-agent graph workflows.*
+Here is the proposed "Generation 4" roadmap for `subagent-fleet`.
 
 ---
 
-## ✅ Completed Milestones (Generation 1 & 2)
+## 1. Decentralized "Blackboard" Architecture (High Priority)
+**The Demand:** In complex local setups, the "Supervisor" agent becomes a massive bottleneck and a Single Point of Failure (SPOF). Small local models (e.g., 8B parameters) struggle to synthesize outputs from 5+ specialized subagents, leading to "computational traffic jams" [1]. Users want to move to a peer-to-peer "Blackboard" pattern where agents broadcast intermediate results to a shared pool, and other agents react autonomously based on local triggers [2].
+**The Solution:**
+- Deprecate rigid point-to-point delegation chains.
+- Introduce a `subagent-fleet blackboard` daemon. Agents write structured outputs (Markdown/JSON) to this shared state. Other agents subscribe to specific triggers (e.g., the `reviewer` agent automatically wakes up when a `coder` agent posts a "PR_READY" event to the blackboard).
+- **Citations:**
+  - [1] *Community discussions on Supervisor bottlenecks in Swarm frameworks.*
+  - [2] *Emerging multi-agent patterns in frameworks like SwarmSys (Explorers, Workers, Validators).*
+
+## 2. GPU Microscheduling for Parallel Swarms (High Priority)
+**The Demand:** While swarms are theoretically parallel, local hardware (like a single RTX 4090 or Mac Studio) forces these requests to process serially. Running 4 agents simultaneously causes VRAM out-of-memory (OOM) errors or massive latency spikes [3]. 
+**The Solution:**
+- Build a native **GPU Microscheduler** into the `subagent-fleet` proxy layer.
+- Instead of raw pass-through to LiteLLM, `subagent-fleet` queues inter-agent requests, monitors live VRAM via `ollama ps` or `vllm metrics`, and dispatches agent inferences only when compute cycles are available, dynamically adjusting `max_parallel` limits on the fly.
+- **Citations:**
+  - [3] *r/LocalLLaMA feature requests for handling parallel inference batching in local swarms.*
+
+## 3. Generative UI / Dynamic Rendering (Medium Priority)
+**The Demand:** Terminal logs (even with rich tracing) are becoming insufficient to monitor 10+ autonomous agents. Users want the UI to be as dynamic as the swarm itself [4]. If a researcher agent finds tabular data, the UI should render a table; if a coder agent writes a patch, it should render a diff view.
+**The Solution:**
+- Expand the `subagent-fleet dashboard` to support **Generative UI**.
+- Intercept agent outputs via Server-Sent Events (SSE) and stream them to the local React dashboard. Use a lightweight parsing model to dynamically render React components (Charts, Tables, Markdown, Diffs) based on the agent's current intent.
+- **Citations:**
+  - [4] *Discussions on Vercel AI SDK and the shift toward Generative UI in multi-agent systems.*
+
+## 4. Markdown-Based State Persistence (Medium Priority)
+**The Demand:** Relying on Redis or SQLite for state management is often seen as overkill or "too opaque" for local developers. If the orchestration layer crashes, the state is locked in a database [5]. Developers strongly prefer "Markdown-based state" that survives ephemeral session restarts and can be version-controlled in Git.
+**The Solution:**
+- Introduce `state_driver: markdown` in `fleet.yaml`.
+- Instead of memory databases, `subagent-fleet` manages state by continuously updating `TASKS.md`, `DECISIONS.md`, and `CONTEXT.md` in a `.fleet_state/` directory. Agents read these files before acting, ensuring a "shared view of reality" that developers can easily read and edit by hand.
+- **Citations:**
+  - [5] *Community consensus on Aider/Claude Code workflows favoring human-readable context files over hidden databases.*
+
+## 5. Dynamic Role Switching (Long-Term)
+**The Demand:** Defining 30+ static agents in YAML is cumbersome. Users want agents that can monitor the environment and change their own system prompts [6]. For example, a "Coding Agent" that notices a backlog of untested code dynamically switches to a "Testing Agent" persona.
+**The Solution:**
+- Allow agents to mutate their own configurations via a specialized MCP tool (`fleet-config-editor`).
+- This allows a swarm to self-balance—if research is done, 4 researcher agents can rewrite their own prompts to become implementer agents to help clear the coding backlog.
+- **Citations:**
+  - [6] *Research into Active Inference and self-balancing agent clusters.*
+
+---
+
+## ✅ Completed Milestones (Generations 1, 2 & 3)
 The following features have been fully implemented (up to `v0.1.2`):
-- **Gen 1:** Discovery, routing, LiteLLM/Claude Code generation, unified observability (LangSmith/Langfuse).
+- **Gen 1:** Discovery, routing, LiteLLM/Claude Code generation, unified observability.
 - **Gen 2:** Aider support, Wake-on-LAN power management, Sandboxed Workspaces, HITL Middleware, dynamic routing hooks, and state fallbacks.
+- **Gen 3:** Cross-Agent KV Cache Sharing (vLLM prefix caching), Hybrid Cloud Tiered Routing, Zero-Trust Agent-to-Agent Security, and Namespaced Agent Memory (SQLite).
