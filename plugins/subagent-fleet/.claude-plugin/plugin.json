@@ -1,6 +1,6 @@
 {
   "name": "subagent-fleet",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Run Claude Code-style subagents across your local Ollama and LiteLLM model fleet.",
   "author": {
     "name": "Aditya Karnam",

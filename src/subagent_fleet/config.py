@@ -120,6 +120,7 @@ class AgentConfig(BaseModel):
     memory_namespace: str = "isolated"
     shared_pool_id: str | None = None
     state_driver: str = "sqlite"
+    self_mutating: bool = False
     @classmethod
     def default_prompt(cls, value: str | None) -> str:
         if value is None or not value.strip():

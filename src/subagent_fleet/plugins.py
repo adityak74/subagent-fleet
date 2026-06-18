@@ -7,7 +7,7 @@ from pathlib import Path
 from subagent_fleet.skills import BUNDLED_SKILLS, load_skill_template
 
 PLUGIN_NAME = "subagent-fleet"
-PLUGIN_VERSION = "0.1.6"
+PLUGIN_VERSION = "0.1.7"
 PLUGIN_DESCRIPTION = "Run Claude Code-style subagents across your local Ollama and LiteLLM model fleet."
 PLUGIN_REPOSITORY = "https://github.com/adityak74/subagent-fleet"
 PLUGIN_HOMEPAGE = "https://github.com/adityak74/subagent-fleet#readme"
