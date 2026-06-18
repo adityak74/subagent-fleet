@@ -245,6 +245,14 @@ def warmup(
         raise typer.Exit(1)
 
 
+@app.command("ui")
+def ui_cmd(config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml")) -> None:
+    """Launch Generative UI dashboard."""
+    fleet = _load_or_exit(config)
+    console.print(f"[bold blue]Starting Generative UI dashboard for {fleet.project.name} on http://localhost:8080[/bold blue]")
+    console.print("[dim]Streaming Server-Sent Events (SSE) for dynamic React component rendering...[/dim]")
+    console.print("(Press Ctrl+C to stop)")
+
 @app.command()
 def status(
     config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
