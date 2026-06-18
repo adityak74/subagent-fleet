@@ -167,6 +167,11 @@ def generate(
             if bb_paths:
                 generated.extend(bb_paths)
             
+            from subagent_fleet.generators.scheduler import generate_scheduler_hook
+            sched_paths = generate_scheduler_hook(fleet, out, source=source, force=force)
+            if sched_paths:
+                generated.extend(sched_paths)
+            
         if "aider" in targets and not litellm_only:
             generated.extend(generate_aider_config(fleet, out, source=source, force=force))
             

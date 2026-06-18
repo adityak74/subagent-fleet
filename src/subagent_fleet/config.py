@@ -70,6 +70,7 @@ class ProjectConfig(BaseModel):
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
     dynamic_routing: bool = False
+    gpu_microscheduling: bool = False
 
 
 class NodeConfig(BaseModel):
