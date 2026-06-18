@@ -162,6 +162,11 @@ def generate(
             if sec_paths:
                 generated.extend(sec_paths)
             
+            from subagent_fleet.generators.blackboard import generate_blackboard_daemon
+            bb_paths = generate_blackboard_daemon(fleet, out, source=source, force=force)
+            if bb_paths:
+                generated.extend(bb_paths)
+            
         if "aider" in targets and not litellm_only:
             generated.extend(generate_aider_config(fleet, out, source=source, force=force))
             

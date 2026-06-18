@@ -65,6 +65,8 @@ class ProjectConfig(BaseModel):
 
     name: str
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
+    blackboard_enabled: bool = False
+    blackboard_enabled: bool = False
     security: SecurityConfig = Field(default_factory=SecurityConfig)
     observability: ObservabilityConfig = Field(default_factory=ObservabilityConfig)
     dynamic_routing: bool = False
