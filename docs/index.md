@@ -1,5 +1,3 @@
-<div align="center">
-
 # subagent-fleet
 
 **Run Claude Code-style subagents across your local model fleet.**
@@ -7,7 +5,7 @@
 `subagent-fleet` is a config-first Python CLI for mapping coding subagents to the best Ollama model and machine you own, then generating LiteLLM and Claude Code-style agent configuration.
 
 [![GitHub Repo stars](https://img.shields.io/github/stars/adityak74/subagent-fleet?style=social)](https://github.com/adityak74/subagent-fleet/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![CLI](https://img.shields.io/badge/interface-CLI-4B5563)
 ![Ollama](https://img.shields.io/badge/ollama-compatible-111827)
@@ -16,8 +14,6 @@
 ![GitHub issues](https://img.shields.io/github/issues/adityak74/subagent-fleet)
 
 [Quickstart](#quickstart) • [Configuration](#configuration) • [Generated Files](#generated-files) • [Security](#security) • [Roadmap](#roadmap)
-
-</div>
 
 ## Overview
 
