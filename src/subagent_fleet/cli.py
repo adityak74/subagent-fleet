@@ -218,8 +218,11 @@ def warmup(
     config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
     model: Annotated[str | None, typer.Option("--model", help="Only warm this configured model name.")] = None,
     agent: Annotated[str | None, typer.Option("--agent", help="Only warm the model used by this agent.")] = None,
+    dashboard_url: Annotated[str | None, typer.Option("--dashboard-url", help="URL of running dashboard to push warmup events to (e.g., http://127.0.0.1:8080).")] = None,
 ) -> None:
     """Preload configured Ollama models."""
+    from subagent_fleet.ui import emit_warmup_event
+
     fleet = _load_or_exit(config)
     try:
         results = warmup_models(fleet, model_name=model, agent_name=agent)
@@ -234,12 +237,23 @@ def warmup(
     table.add_column("Ollama Model")
     table.add_column("Status")
     for result in results:
+        status_text = "[green]ok[/green]" if result.ok else f"[red]failed[/red] {result.error}"
         table.add_row(
             result.model_name,
             result.node_name,
             result.ollama_model,
-            "[green]ok[/green]" if result.ok else f"[red]failed[/red] {result.error}",
+            status_text,
         )
+
+        # Push warmup event to dashboard if URL provided.
+        if dashboard_url:
+            emit_warmup_event(
+                dashboard_url=dashboard_url,
+                model_name=result.model_name,
+                node_name=result.node_name,
+                status="ok" if result.ok else f"error: {result.error}",
+            )
+
     console.print(table)
     if any(not result.ok for result in results):
         raise typer.Exit(1)
@@ -249,11 +263,12 @@ def warmup(
 def ui_cmd(
     config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
     port: Annotated[int, typer.Option("--port", "-p", help="Port to bind the dashboard server.")] = 8080,
+    log_file: Annotated[str | None, typer.Option("--log-file", help="Path to LiteLLM debug log for trace streaming.")] = None,
 ) -> None:
     """Launch Generative UI dashboard."""
     from subagent_fleet.ui import launch_dashboard
 
-    launch_dashboard(config_path=config, port=port)
+    launch_dashboard(config_path=config, port=port, log_path=log_file)
 
 @app.command()
 def status(

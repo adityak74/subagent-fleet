@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Dashboard — {{ fleet_name }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Fleet Dashboard</h1>
+        <p class="subtitle">Project: <span id="fleet-name">{{ fleet_name }}</span></p>
+    </header>
+
+    <div class="grid" id="panels">
+        <!-- Node Health Panel -->
+        <div class="card card-nodes">
+            <h2><span>&#x1f4cd;</span> Node Health</h2>
+            <div class="panel-body" id="node-panel">
+                <div class="empty-state">Loading nodes…</div>
+            </div>
+        </div>
+
+        <!-- Agent Routing Panel -->
+        <div class="card card-routes">
+            <h2><span>&#x1f517;</span> Agent Routing</h2>
+            <div class="panel-body" id="route-panel">
+                <div class="empty-state">Loading routes…</div>
+            </div>
+        </div>
+
+        <!-- Live Trace Stream Panel -->
+        <div class="card card-trace full-width">
+            <h2><span>&#x1f4e1;</span> Live Trace Stream
+                <button id="trace-clear" class="btn-sm" title="Clear log">Clear</button>
+                <label class="auto-scroll-label">
+                    <input type="checkbox" id="auto-scroll" checked> Auto-scroll
+                </label>
+            </h2>
+            <div class="panel-body trace-body" id="trace-panel">
+                <div class="empty-state">No trace events yet. Start LiteLLM with --detailed_debug to see activity.</div>
+            </div>
+        </div>
+
+        <!-- Model Warmup Progress Panel -->
+        <div class="card card-warmup full-width">
+            <h2><span>&#x1f525;</span> Model Warmup Progress</h2>
+            <div class="panel-body" id="warmup-panel">
+                <div class="empty-state">No warmup in progress. Run <code>subagent-fleet warmup</code> to preload models.</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

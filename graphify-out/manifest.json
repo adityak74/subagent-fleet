@@ -1,0 +1,547 @@
+{
+  "/Users/adityakarnam/Projects/subagent-fleet/.agents/plugins/marketplace.json": {
+    "mtime": 1781753282.5692277,
+    "ast_hash": "e47c8ea4604ad1d57b41a5f6b62df8eb",
+    "semantic_hash": "e47c8ea4604ad1d57b41a5f6b62df8eb"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/.claude-plugin/marketplace.json": {
+    "mtime": 1781753282.5690718,
+    "ast_hash": "ac38cc8fc704edf50357288ea1dc63d5",
+    "semantic_hash": "ac38cc8fc704edf50357288ea1dc63d5"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/implement_gen3_roadmap.py": {
+    "mtime": 1781645641.9184399,
+    "ast_hash": "3d22e679db3d0303b630b6949c7e56ec",
+    "semantic_hash": "3d22e679db3d0303b630b6949c7e56ec"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/implement_gen3_roadmap_fix.py": {
+    "mtime": 1781645665.876546,
+    "ast_hash": "7c29f83145c7c2948dcec8f1afad2fce",
+    "semantic_hash": "7c29f83145c7c2948dcec8f1afad2fce"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/implement_new_roadmap.py": {
+    "mtime": 1781637989.0281427,
+    "ast_hash": "8092e11d084e66251c25d144259c3460",
+    "semantic_hash": "8092e11d084e66251c25d144259c3460"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/plugins/subagent-fleet/.claude-plugin/plugin.json": {
+    "mtime": 1781753282.569158,
+    "ast_hash": "3685f98a30a34983476a521b49f73fc5",
+    "semantic_hash": "3685f98a30a34983476a521b49f73fc5"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/plugins/subagent-fleet/.codex-plugin/plugin.json": {
+    "mtime": 1781753282.5692842,
+    "ast_hash": "6b45470a30f0d9b5d844693519ac230e",
+    "semantic_hash": "6b45470a30f0d9b5d844693519ac230e"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/pyproject.toml": {
+    "mtime": 1781753282.4492087,
+    "ast_hash": "4a5875574d6b9ca89b6528dbb4221d6b",
+    "semantic_hash": "4a5875574d6b9ca89b6528dbb4221d6b"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/bundle.79ae519e.min.js": {
+    "mtime": 1781756764.4088748,
+    "ast_hash": "70adeb0be4442f31d1abcf7b671d26dc",
+    "semantic_hash": "70adeb0be4442f31d1abcf7b671d26dc"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.ar.min.js": {
+    "mtime": 1781756764.4093363,
+    "ast_hash": "1a64840641c8d52b800388a538b4ca35",
+    "semantic_hash": "1a64840641c8d52b800388a538b4ca35"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.da.min.js": {
+    "mtime": 1781756764.409477,
+    "ast_hash": "cb5c7deacc09fdef5ba23a484697a7c4",
+    "semantic_hash": "cb5c7deacc09fdef5ba23a484697a7c4"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.de.min.js": {
+    "mtime": 1781756764.4096053,
+    "ast_hash": "d8ad86c7d3f64f0a2f933a6af0d9bb90",
+    "semantic_hash": "d8ad86c7d3f64f0a2f933a6af0d9bb90"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.du.min.js": {
+    "mtime": 1781756764.4097319,
+    "ast_hash": "c3dd5e22a4bbd93cea8db0a189c75507",
+    "semantic_hash": "c3dd5e22a4bbd93cea8db0a189c75507"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.el.min.js": {
+    "mtime": 1781756764.4099286,
+    "ast_hash": "e16237c91ffdd50e5caf2cda98ce763d",
+    "semantic_hash": "e16237c91ffdd50e5caf2cda98ce763d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.es.min.js": {
+    "mtime": 1781756764.4100542,
+    "ast_hash": "e5353de9835f5a2ae223b9ca84042458",
+    "semantic_hash": "e5353de9835f5a2ae223b9ca84042458"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.fi.min.js": {
+    "mtime": 1781756764.4102402,
+    "ast_hash": "7e38b7aea539e5d70556e17c5eeeb27b",
+    "semantic_hash": "7e38b7aea539e5d70556e17c5eeeb27b"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.fr.min.js": {
+    "mtime": 1781756764.4104495,
+    "ast_hash": "fa552c71d8b6df7524f1faaa5ebc8501",
+    "semantic_hash": "fa552c71d8b6df7524f1faaa5ebc8501"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.he.min.js": {
+    "mtime": 1781756764.4106174,
+    "ast_hash": "652294dbd7c18736f8bab6165da5c868",
+    "semantic_hash": "652294dbd7c18736f8bab6165da5c868"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.hi.min.js": {
+    "mtime": 1781756764.4107502,
+    "ast_hash": "987fe4e02a319b28840a259930c38e2d",
+    "semantic_hash": "987fe4e02a319b28840a259930c38e2d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.hu.min.js": {
+    "mtime": 1781756764.410913,
+    "ast_hash": "16ba822c6ba96ea3c46200b5a52e8e8f",
+    "semantic_hash": "16ba822c6ba96ea3c46200b5a52e8e8f"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.hy.min.js": {
+    "mtime": 1781756764.4110394,
+    "ast_hash": "72621c38dc5df3cb135d3446772d22f6",
+    "semantic_hash": "72621c38dc5df3cb135d3446772d22f6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.it.min.js": {
+    "mtime": 1781756764.4112055,
+    "ast_hash": "498452a1930fe4528d960aae4f716c7c",
+    "semantic_hash": "498452a1930fe4528d960aae4f716c7c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.ja.min.js": {
+    "mtime": 1781756764.4113224,
+    "ast_hash": "5623d7b1d52549da7ef6fcdff14b31f4",
+    "semantic_hash": "5623d7b1d52549da7ef6fcdff14b31f4"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.jp.min.js": {
+    "mtime": 1781756764.4114506,
+    "ast_hash": "92740e202ca53e306ab899d3c6477ce1",
+    "semantic_hash": "92740e202ca53e306ab899d3c6477ce1"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.kn.min.js": {
+    "mtime": 1781756764.4115772,
+    "ast_hash": "52e5ec6c79e8607d8a4d287cffd5d0b3",
+    "semantic_hash": "52e5ec6c79e8607d8a4d287cffd5d0b3"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.ko.min.js": {
+    "mtime": 1781756764.4117386,
+    "ast_hash": "785bb0c4e6c0fb12917b39c2b7f99a0a",
+    "semantic_hash": "785bb0c4e6c0fb12917b39c2b7f99a0a"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.multi.min.js": {
+    "mtime": 1781756764.411873,
+    "ast_hash": "f58ed4a6a8909ca5e997d9c14bd564f6",
+    "semantic_hash": "f58ed4a6a8909ca5e997d9c14bd564f6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.nl.min.js": {
+    "mtime": 1781756764.41201,
+    "ast_hash": "3461b858ef55ad5fa276854c535cbae3",
+    "semantic_hash": "3461b858ef55ad5fa276854c535cbae3"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.no.min.js": {
+    "mtime": 1781756764.412139,
+    "ast_hash": "5bbc2f5e8186556dbc1782063cfc8ee1",
+    "semantic_hash": "5bbc2f5e8186556dbc1782063cfc8ee1"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.pt.min.js": {
+    "mtime": 1781756764.4123075,
+    "ast_hash": "0f5a525b2bf38d1ec11cb67356773622",
+    "semantic_hash": "0f5a525b2bf38d1ec11cb67356773622"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.ro.min.js": {
+    "mtime": 1781756764.4124382,
+    "ast_hash": "5b1587eb20faac2c53dd11ff84425df5",
+    "semantic_hash": "5b1587eb20faac2c53dd11ff84425df5"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.ru.min.js": {
+    "mtime": 1781756764.412597,
+    "ast_hash": "b238b05d00dafa7ab40299c7b8f5f46b",
+    "semantic_hash": "b238b05d00dafa7ab40299c7b8f5f46b"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.sa.min.js": {
+    "mtime": 1781756764.412767,
+    "ast_hash": "2a9731e42ec88940a7d57282ff20b304",
+    "semantic_hash": "2a9731e42ec88940a7d57282ff20b304"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.stemmer.support.min.js": {
+    "mtime": 1781756764.4129322,
+    "ast_hash": "f58cd5cb3aceec05fa133d8e47ac8b66",
+    "semantic_hash": "f58cd5cb3aceec05fa133d8e47ac8b66"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.sv.min.js": {
+    "mtime": 1781756764.4131076,
+    "ast_hash": "2c22035941f0d81181afb599dc66bf4d",
+    "semantic_hash": "2c22035941f0d81181afb599dc66bf4d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.ta.min.js": {
+    "mtime": 1781756764.413207,
+    "ast_hash": "cdcbc4445530bf338f7410008621c5a3",
+    "semantic_hash": "cdcbc4445530bf338f7410008621c5a3"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.te.min.js": {
+    "mtime": 1781756764.4133525,
+    "ast_hash": "5ea846981ba3c69844166791e58b3205",
+    "semantic_hash": "5ea846981ba3c69844166791e58b3205"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.th.min.js": {
+    "mtime": 1781756764.4134715,
+    "ast_hash": "74bd1a28d804d58de3ab6ffb536e7f0a",
+    "semantic_hash": "74bd1a28d804d58de3ab6ffb536e7f0a"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.tr.min.js": {
+    "mtime": 1781756764.4136949,
+    "ast_hash": "c64da4ee31851fbae9eecb6d3c328930",
+    "semantic_hash": "c64da4ee31851fbae9eecb6d3c328930"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.vi.min.js": {
+    "mtime": 1781756764.4138184,
+    "ast_hash": "6f44534ba60b0ee9efab689d05e9093d",
+    "semantic_hash": "6f44534ba60b0ee9efab689d05e9093d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/min/lunr.zh.min.js": {
+    "mtime": 1781756764.413914,
+    "ast_hash": "c389a3f75a63e2f82583e2299e71d24c",
+    "semantic_hash": "c389a3f75a63e2f82583e2299e71d24c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/tinyseg.js": {
+    "mtime": 1781756764.41402,
+    "ast_hash": "982caada2fd97756b05b2cd1b8bf5f8a",
+    "semantic_hash": "982caada2fd97756b05b2cd1b8bf5f8a"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/lunr/wordcut.js": {
+    "mtime": 1781756764.4141927,
+    "ast_hash": "bba0d876ec8dcca1f4effced534f58f7",
+    "semantic_hash": "bba0d876ec8dcca1f4effced534f58f7"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/javascripts/workers/search.2c215733.min.js": {
+    "mtime": 1781756764.4143727,
+    "ast_hash": "185b93ebc008f99370eccd9274d04629",
+    "semantic_hash": "185b93ebc008f99370eccd9274d04629"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/search/search_index.json": {
+    "mtime": 1781756764.4831955,
+    "ast_hash": "32f642a47fae7efb6f9768d9504b66ca",
+    "semantic_hash": "32f642a47fae7efb6f9768d9504b66ca"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/__init__.py": {
+    "mtime": 1781559651.4863446,
+    "ast_hash": "b703815958577af71bf80318ad1fceae",
+    "semantic_hash": "b703815958577af71bf80318ad1fceae"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/cli.py": {
+    "mtime": 1782715930.0608358,
+    "ast_hash": "df6e893fecb598b07820158e480177be",
+    "semantic_hash": "df6e893fecb598b07820158e480177be"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/config.py": {
+    "mtime": 1781753282.449049,
+    "ast_hash": "4af8ccecce994e6427730badbe8be18d",
+    "semantic_hash": "4af8ccecce994e6427730badbe8be18d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/defaults.py": {
+    "mtime": 1781501815.045115,
+    "ast_hash": "61075e7b2d9f4d3ac2532e842e234581",
+    "semantic_hash": "61075e7b2d9f4d3ac2532e842e234581"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/discovery.py": {
+    "mtime": 1781645703.0843742,
+    "ast_hash": "80706e086346a3a1262709b7c567a0a6",
+    "semantic_hash": "80706e086346a3a1262709b7c567a0a6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/__init__.py": {
+    "mtime": 1781753244.7266252,
+    "ast_hash": "063b187c541e49b490c07b2881f14950",
+    "semantic_hash": "063b187c541e49b490c07b2881f14950"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/aider.py": {
+    "mtime": 1781631155.6420932,
+    "ast_hash": "3b44380d78b4441ac294f8cfaddd9239",
+    "semantic_hash": "3b44380d78b4441ac294f8cfaddd9239"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/blackboard.py": {
+    "mtime": 1781753164.437576,
+    "ast_hash": "2cd71d0e57952e686f7dd0ae2d823ad7",
+    "semantic_hash": "2cd71d0e57952e686f7dd0ae2d823ad7"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/claude_agents.py": {
+    "mtime": 1781501815.7785506,
+    "ast_hash": "03b92da2b001f4169be3a57690c64454",
+    "semantic_hash": "03b92da2b001f4169be3a57690c64454"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/common.py": {
+    "mtime": 1781501815.5871584,
+    "ast_hash": "c35dfac0fcb2ded2d310391485f24128",
+    "semantic_hash": "c35dfac0fcb2ded2d310391485f24128"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/env_file.py": {
+    "mtime": 1781501815.8744488,
+    "ast_hash": "f5e4b0fb8fb2401aea511f08cbbec3f9",
+    "semantic_hash": "f5e4b0fb8fb2401aea511f08cbbec3f9"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/litellm.py": {
+    "mtime": 1781501815.6821342,
+    "ast_hash": "21497c26caf7f142404e06e53ffa3fa0",
+    "semantic_hash": "21497c26caf7f142404e06e53ffa3fa0"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/mcp.py": {
+    "mtime": 1781631755.9903421,
+    "ast_hash": "91c2dc554bc45326bb5c62a3423d74fe",
+    "semantic_hash": "91c2dc554bc45326bb5c62a3423d74fe"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/router.py": {
+    "mtime": 1781631766.2100556,
+    "ast_hash": "919d1cfcb01be67063433dbc7eafa01f",
+    "semantic_hash": "919d1cfcb01be67063433dbc7eafa01f"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/scheduler.py": {
+    "mtime": 1781753244.7265167,
+    "ast_hash": "cdc0cd335ddd70a0952f1f2ae7bc0d78",
+    "semantic_hash": "cdc0cd335ddd70a0952f1f2ae7bc0d78"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/security.py": {
+    "mtime": 1781645772.7050865,
+    "ast_hash": "6fb245dd8a2e29fdcb2c445b30e682a6",
+    "semantic_hash": "6fb245dd8a2e29fdcb2c445b30e682a6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/generators/wol.py": {
+    "mtime": 1781637995.5261264,
+    "ast_hash": "9657303d090e896914f63afe8be020cb",
+    "semantic_hash": "9657303d090e896914f63afe8be020cb"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/plugins.py": {
+    "mtime": 1781753282.4492886,
+    "ast_hash": "30c70f989b3862d3ab634a1df1915ffd",
+    "semantic_hash": "30c70f989b3862d3ab634a1df1915ffd"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/skills.py": {
+    "mtime": 1781545473.7945528,
+    "ast_hash": "72f22d92d0d3349888bad1c64007818c",
+    "semantic_hash": "72f22d92d0d3349888bad1c64007818c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/status.py": {
+    "mtime": 1781502989.8119717,
+    "ast_hash": "a1d24f3bf99bafd7c1be5c955421cb50",
+    "semantic_hash": "a1d24f3bf99bafd7c1be5c955421cb50"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/ui/__init__.py": {
+    "mtime": 1782715856.398714,
+    "ast_hash": "7e029a0ae3efe20d59ae76e5957c2545",
+    "semantic_hash": "7e029a0ae3efe20d59ae76e5957c2545"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/ui/events.py": {
+    "mtime": 1782713445.7340338,
+    "ast_hash": "8614d8314db9667bf84a03a6b8eefaec",
+    "semantic_hash": "8614d8314db9667bf84a03a6b8eefaec"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/ui/server.py": {
+    "mtime": 1782716103.0388741,
+    "ast_hash": "0fa60bd53775e653e2f2ed5b10410bbb",
+    "semantic_hash": "0fa60bd53775e653e2f2ed5b10410bbb"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/warmup.py": {
+    "mtime": 1781501815.3330555,
+    "ast_hash": "4092787e840099833fd34d5539a1ad25",
+    "semantic_hash": "4092787e840099833fd34d5539a1ad25"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/conftest.py": {
+    "mtime": 1781501817.1148782,
+    "ast_hash": "4a1ba44925f2f02be35f89e42590e187",
+    "semantic_hash": "4a1ba44925f2f02be35f89e42590e187"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_cli.py": {
+    "mtime": 1781547497.6307106,
+    "ast_hash": "4474cf0d42f3fc1f0605b4fb1ce2f771",
+    "semantic_hash": "4474cf0d42f3fc1f0605b4fb1ce2f771"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_config.py": {
+    "mtime": 1781503025.2258518,
+    "ast_hash": "87e15895f69b8810be22c26636aa47c0",
+    "semantic_hash": "87e15895f69b8810be22c26636aa47c0"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_discovery.py": {
+    "mtime": 1781501817.4661505,
+    "ast_hash": "299c6eb4a3bf951c54327f774e005e6b",
+    "semantic_hash": "299c6eb4a3bf951c54327f774e005e6b"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_generate_aider.py": {
+    "mtime": 1781631305.7840579,
+    "ast_hash": "69eb85763a84f7b59c567258e57975b6",
+    "semantic_hash": "69eb85763a84f7b59c567258e57975b6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_generate_claude_agents.py": {
+    "mtime": 1781501817.6570826,
+    "ast_hash": "706a3e55af7c7f52fdffa68b62315e5d",
+    "semantic_hash": "706a3e55af7c7f52fdffa68b62315e5d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_generate_litellm.py": {
+    "mtime": 1781501817.5622382,
+    "ast_hash": "7e5fe2cb753797ec6d79012d62290ddf",
+    "semantic_hash": "7e5fe2cb753797ec6d79012d62290ddf"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_observability.py": {
+    "mtime": 1781628011.9760032,
+    "ast_hash": "594b68397df177396c4e526241efa36a",
+    "semantic_hash": "594b68397df177396c4e526241efa36a"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_plugins.py": {
+    "mtime": 1781547497.7181149,
+    "ast_hash": "7c47f942af1be963bfe20d5cb381389c",
+    "semantic_hash": "7c47f942af1be963bfe20d5cb381389c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_trace_cmd.py": {
+    "mtime": 1781628049.1885552,
+    "ast_hash": "d7566c4e7ae2ff747103431d5328b000",
+    "semantic_hash": "d7566c4e7ae2ff747103431d5328b000"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_ui_events.py": {
+    "mtime": 1782713499.922784,
+    "ast_hash": "53dbbe1756dba3f8bf4623027bcc8437",
+    "semantic_hash": "53dbbe1756dba3f8bf4623027bcc8437"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_ui_server.py": {
+    "mtime": 1782713668.432384,
+    "ast_hash": "7042ff5f70c3f76ae9e0f11099b08239",
+    "semantic_hash": "7042ff5f70c3f76ae9e0f11099b08239"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/tests/test_warmup.py": {
+    "mtime": 1781503127.417437,
+    "ast_hash": "4f2ba2cd2612aab0bc4fea4e048e9f4c",
+    "semantic_hash": "4f2ba2cd2612aab0bc4fea4e048e9f4c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/.github/workflows/docs.yml": {
+    "mtime": 1781755812.548867,
+    "ast_hash": "e5f075e177097ae0680d5fefb6725414",
+    "semantic_hash": "e5f075e177097ae0680d5fefb6725414"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/AGENTS.md": {
+    "mtime": 1781500824.8377552,
+    "ast_hash": "b5a15188921080c23fa708e6ccaf2255",
+    "semantic_hash": "b5a15188921080c23fa708e6ccaf2255"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/README.md": {
+    "mtime": 1781559651.6625416,
+    "ast_hash": "79e0a311326f8c2f0faaa7eff55eef9d",
+    "semantic_hash": "79e0a311326f8c2f0faaa7eff55eef9d"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/ROADMAP_PROPOSAL.md": {
+    "mtime": 1781752593.5433304,
+    "ast_hash": "9d91dbaab34d7b560844c2d2332072da",
+    "semantic_hash": "9d91dbaab34d7b560844c2d2332072da"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/SPEC.md": {
+    "mtime": 1781500556.6012836,
+    "ast_hash": "5018580f563ce3c85ebf812744983b61",
+    "semantic_hash": "5018580f563ce3c85ebf812744983b61"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/docs/LICENSE.md": {
+    "mtime": 1781755824.2078044,
+    "ast_hash": "641302406960cbb074e431e532f419d0",
+    "semantic_hash": "641302406960cbb074e431e532f419d0"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/docs/index.md": {
+    "mtime": 1781756756.285707,
+    "ast_hash": "de90e544a7a0800745ddb76bb62db560",
+    "semantic_hash": "de90e544a7a0800745ddb76bb62db560"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/docs/roadmap.md": {
+    "mtime": 1781755802.421742,
+    "ast_hash": "9d91dbaab34d7b560844c2d2332072da",
+    "semantic_hash": "9d91dbaab34d7b560844c2d2332072da"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/docs/spec.md": {
+    "mtime": 1781755802.4202201,
+    "ast_hash": "5018580f563ce3c85ebf812744983b61",
+    "semantic_hash": "5018580f563ce3c85ebf812744983b61"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/examples/claude-agents/implementer.md": {
+    "mtime": 1781503118.7699962,
+    "ast_hash": "4f0e6cb470c439a5f5a089c38da72eb2",
+    "semantic_hash": "4f0e6cb470c439a5f5a089c38da72eb2"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/examples/claude-agents/planner.md": {
+    "mtime": 1781503118.6741593,
+    "ast_hash": "26558c9fda0f479b532d8f23a6754dff",
+    "semantic_hash": "26558c9fda0f479b532d8f23a6754dff"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/examples/claude-agents/reviewer.md": {
+    "mtime": 1781503118.8655887,
+    "ast_hash": "868f3d6361434d9985764d305c9c1de6",
+    "semantic_hash": "868f3d6361434d9985764d305c9c1de6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/examples/litellm_config.generated.yaml": {
+    "mtime": 1781501816.5787613,
+    "ast_hash": "f199f0353742a8472ed25fa6022036fd",
+    "semantic_hash": "f199f0353742a8472ed25fa6022036fd"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/mkdocs.yml": {
+    "mtime": 1781755846.5882626,
+    "ast_hash": "9cb348236f528ffcefb4c072f85ab26f",
+    "semantic_hash": "9cb348236f528ffcefb4c072f85ab26f"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/plugins/subagent-fleet/skills/subagent-fleet-bootstrap/SKILL.md": {
+    "mtime": 1781753282.5697331,
+    "ast_hash": "5809a7a2b10f6030890d9893fc6b8f80",
+    "semantic_hash": "5809a7a2b10f6030890d9893fc6b8f80"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/plugins/subagent-fleet/skills/subagent-fleet-operations/SKILL.md": {
+    "mtime": 1781753282.569912,
+    "ast_hash": "9f0cbadfe54c9055114efc8fa993834c",
+    "semantic_hash": "9f0cbadfe54c9055114efc8fa993834c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/plugins/subagent-fleet/skills/subagent-fleet-setup/SKILL.md": {
+    "mtime": 1781753282.5698256,
+    "ast_hash": "7e25902d0ed199c0a0e53bcd557203a9",
+    "semantic_hash": "7e25902d0ed199c0a0e53bcd557203a9"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/404.html": {
+    "mtime": 1781756764.457289,
+    "ast_hash": "d19a862924eb64c6e3156c9924127c89",
+    "semantic_hash": "d19a862924eb64c6e3156c9924127c89"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/LICENSE/index.html": {
+    "mtime": 1781756764.4740574,
+    "ast_hash": "e0b72fed3864c14124b5dcb6c3adf014",
+    "semantic_hash": "e0b72fed3864c14124b5dcb6c3adf014"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/index.html": {
+    "mtime": 1781756764.473465,
+    "ast_hash": "e2bbc4261045683766f53acccdf9c2d4",
+    "semantic_hash": "e2bbc4261045683766f53acccdf9c2d4"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/roadmap/index.html": {
+    "mtime": 1781756764.4750524,
+    "ast_hash": "21c93225b1f74542ecf4841dcdaf07c7",
+    "semantic_hash": "21c93225b1f74542ecf4841dcdaf07c7"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/spec/index.html": {
+    "mtime": 1781756764.4829931,
+    "ast_hash": "8988fb2263364cd991233bc90943d18f",
+    "semantic_hash": "8988fb2263364cd991233bc90943d18f"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/skill_templates/subagent-fleet-bootstrap.md": {
+    "mtime": 1781559668.0727475,
+    "ast_hash": "5809a7a2b10f6030890d9893fc6b8f80",
+    "semantic_hash": "5809a7a2b10f6030890d9893fc6b8f80"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/skill_templates/subagent-fleet-operations.md": {
+    "mtime": 1781547531.548611,
+    "ast_hash": "9f0cbadfe54c9055114efc8fa993834c",
+    "semantic_hash": "9f0cbadfe54c9055114efc8fa993834c"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/skill_templates/subagent-fleet-setup.md": {
+    "mtime": 1781547531.4610734,
+    "ast_hash": "7e25902d0ed199c0a0e53bcd557203a9",
+    "semantic_hash": "7e25902d0ed199c0a0e53bcd557203a9"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/src/subagent_fleet/ui/templates/dashboard.html": {
+    "mtime": 1782715625.5142317,
+    "ast_hash": "1ae33d3815e32d814f3c394df95c92e6",
+    "semantic_hash": "1ae33d3815e32d814f3c394df95c92e6"
+  },
+  "/Users/adityakarnam/Projects/subagent-fleet/site/assets/images/favicon.png": {
+    "mtime": 1781756764.4086735,
+    "ast_hash": "370ef648333a78cf59e253f1322c6fdc",
+    "semantic_hash": "370ef648333a78cf59e253f1322c6fdc"
+  }
+}
