@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import threading
 from pathlib import Path
 
@@ -96,7 +97,7 @@ def emit_warmup_event(
         "status": status,
     }
     url = f"{dashboard_url.rstrip('/')}/api/warmup-progress"
-    data = str.encode(f"data: {__import__('json').dumps(payload)}\n\n")
+    data = f"data: {json.dumps(payload)}\n\n".encode("utf-8")
     req = urllib.request.Request(url, data=data, method="POST")
     req.add_header("Content-Type", "text/event-stream")
     try:

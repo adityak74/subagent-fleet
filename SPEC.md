@@ -6,10 +6,10 @@
 
 **Repository:** `https://github.com/adityak74/subagent-fleet`
 
-**Tagline:** Run Claude Code-style subagents across your local model fleet.
+**Tagline:** "Local AI compute control plane for Claude Code and coding agents."
 
 **One-line description:**  
-`subagent-fleet` is a config-first CLI that discovers local/remote Ollama nodes, maps Claude Code-style subagents to the best model/machine, and generates LiteLLM + `.claude/agents` configuration so developers can run a private local subagent fleet.
+`subagent-fleet` is a local AI compute control plane that routes coding subagents across your Macs, GPUs, and Ollama nodes — with real-time fleet health monitoring, role-based routing, model warmup, and execution tracing.
 
 ---
 
@@ -28,7 +28,7 @@ reviewer    → large coding model on M4 Mac mini 64GB
 summarizer  → small local model on laptop
 ```
 
-The tool should **not** replace Ollama or LiteLLM. It should sit above them as a workflow/configuration layer.
+The tool should **not** replace Ollama or LiteLLM. It should sit above them as the control plane — managing routing, health monitoring, warmup, and observability.
 
 ---
 

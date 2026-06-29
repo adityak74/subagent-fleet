@@ -265,7 +265,7 @@ def ui_cmd(
     port: Annotated[int, typer.Option("--port", "-p", help="Port to bind the dashboard server.")] = 8080,
     log_file: Annotated[str | None, typer.Option("--log-file", help="Path to LiteLLM debug log for trace streaming.")] = None,
 ) -> None:
-    """Launch Generative UI dashboard."""
+    """Launch the Fleet Dashboard web server with node health, routing, and trace stream."""
     from subagent_fleet.ui import launch_dashboard
 
     launch_dashboard(config_path=config, port=port, log_path=log_file)
@@ -326,7 +326,7 @@ def doctor(config: Annotated[Path, typer.Option("--config", help="Path to fleet.
 
 
 @app.command()
-def clean(out: Annotated[Path, typer.Option("--out", help="Output root to clean.")] = Path("."), force: bool = False) -> None:
+def clean(out: Annotated[Path, typer.Option("--out", help="Output root to clean.")] = Path("."), force: Annotated[bool, typer.Option("--force", help="Force clean without confirmation.")] = False) -> None:
     """Remove generated files from an output root."""
     targets = [out / "litellm_config.yaml", out / ".env.subagent-fleet"]
     targets.extend((out / ".claude" / "agents").glob("*.md") if (out / ".claude" / "agents").exists() else [])
@@ -414,7 +414,7 @@ def install_assistant_plugins(
 def trace(
     log_file: Annotated[Path, typer.Option("--log-file", help="Path to LiteLLM log file to stream.")] = Path("litellm.log"),
 ) -> None:
-    """Stream and format LiteLLM logs to monitor subagent execution."""
+    """Follow a LiteLLM log file in real time and stream formatted trace events."""
     if not log_file.exists():
         console.print(f"[red]Log file {log_file} not found.[/red]")
         console.print("Make sure to start LiteLLM with logging redirected to this file:")

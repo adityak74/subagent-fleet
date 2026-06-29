@@ -8,7 +8,7 @@
     --accent-yellow: #ecc94b;
     --accent-blue: #63b3ed;
     --accent-purple: #b794f4;
-    --border-color: #2d3748;
+    --border-color: #3b4a5e;
     --trace-success-bg: rgba(72, 187, 120, 0.08);
     --trace-error-bg: rgba(245, 101, 101, 0.08);
     --trace-routing-bg: rgba(236, 201, 75, 0.08);
@@ -49,6 +49,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 1.5rem;
+    overflow-x: auto;
 }
 .card h2 {
     font-size: 1.25rem;
@@ -101,6 +102,7 @@ th { color: var(--text-secondary); font-weight: 600; text-transform: uppercase; 
 /* Trace stream */
 .trace-body {
     max-height: 400px;
+    overflow-x: hidden;
     overflow-y: auto;
     font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
     font-size: 0.8rem;

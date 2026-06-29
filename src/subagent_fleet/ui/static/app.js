@@ -26,6 +26,10 @@
         }
     }
 
+     // Safe JSON parser for SSE events — prevents a malformed server response
+     function parseSSE(e) {
+         try { return JSON.parse(e.data); } catch (_) { return null; }
+      }
     /* ── SSE connection ─────────────────────────────────── */
 
     var source = null;
@@ -42,16 +46,24 @@
             console.warn('[sse] error:', e.data || e.message);
         });
 
+         var attempt = 0;
+         var maxRetries = 10;
+
         source.onerror = function () {
-            // Reconnect after 3s on failure.
-            setTimeout(function () { connectSSE(); }, 3000);
-        };
+            if (attempt++ >= maxRetries) {
+                document.body.innerHTML += "<div class=\"alert alert-error\">Connection lost. <a href=\"javascript:connectSSE()\">Retry</a></div>";
+                return;
+              }
+            var delay = Math.min(3000 * Math.pow(1.5, attempt), 30000);
+            setTimeout(function () { connectSSE(); }, delay);
+         };
     }
 
     /* ── Node Health panel ─────────────────────────────── */
 
     function handleNodeStatus(e) {
-        var data = JSON.parse(e.data);
+        var data = parseSSE(e);
+        if (!data) return;
         var nodes = data.nodes || [];
         var container = document.getElementById('node-panel');
 
@@ -85,7 +97,8 @@
     /* ── Agent Routing panel ───────────────────────────── */
 
     function handleAgentRoute(e) {
-        var data = JSON.parse(e.data);
+        var data = parseSSE(e);
+        if (!data) return;
         var routes = data.routes || [];
         var container = document.getElementById('route-panel');
 
@@ -125,7 +138,8 @@
     }
 
     function handleTraceLog(e) {
-        var data = JSON.parse(e.data);
+        var data = parseSSE(e);
+        if (!data) return;
         var level = data.level || 'info';
         var ts = formatTs(data.timestamp);
         var msg = escapeHtml(data.message);
@@ -152,20 +166,22 @@
     var warmupMap = {}; // keyed by "model|node" to deduplicate / update in place
 
     function handleWarmupProgress(e) {
-        var data = JSON.parse(e.data);
+        var data = parseSSE(e);
+        if (!data) return;
         var key = (data.model_name || '') + '|' + (data.node_name || '');
         var icon, statusClass;
 
-        if (data.status === 'ok')       { icon = '&#x2705;';  statusClass = 'ok'; }
-        else if (data.status.indexOf('error') === 0) { icon = '&#x1F6AB;'; statusClass = 'error'; }
-        else                            { icon = '&#x23F3;';  statusClass = 'pending'; }
+        var st = (data.status || '').toLowerCase();
+        if (st === 'ok')            { icon = '&#x2705;';  statusClass = 'ok'; }
+        else if ((data.status || '').indexOf('error') === 0) { icon = '&#x1F6AB;'; statusClass = 'error'; }
+        else                        { icon = '&#x23F3;';  statusClass = 'pending'; }
 
         warmupMap[key] = {
             model: data.model_name || '',
             node: data.node_name || '',
             icon: icon,
             statusClass: statusClass,
-            statusText: data.status === 'ok' ? 'OK' : (data.status.indexOf('error') === 0 ? 'Failed' : 'Warming…'),
+            statusText: st === 'ok' ? 'OK' : (st.indexOf('error') === 0 ? 'Failed' : 'Warming…'),
         };
 
         renderWarmup();

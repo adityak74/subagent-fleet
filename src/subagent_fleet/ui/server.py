@@ -23,7 +23,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import queue
 import threading
 import time
 from dataclasses import dataclass, field
@@ -334,7 +333,12 @@ class DashboardRequestHandler(BaseHTTPRequestHandler):
     def _serve_static_file(self, filename: str) -> None:
         """Serve static files (CSS, JS, images) from the static directory."""
         srv = self.server  # type: DashboardServer
-        file_path = srv.static_dir / filename
+        file_path = (srv.static_dir / filename).resolve()
+
+        # Path traversal guard — reject any path that escapes static_dir.
+        if not str(file_path).startswith(str(srv.static_dir.resolve())):
+            self.send_error(403, "Forbidden")
+            return
 
         if not file_path.exists() or not file_path.is_file():
             self.send_error(404, "File Not Found")
@@ -526,80 +530,6 @@ class DashboardServer(ThreadingHTTPServer):
                 self._clients.remove(slot)
             except ValueError:
                 pass
-
-    # ── Request handlers ─────────────────────────────────────
-
-    def do_GET(self) -> None:  # noqa: N802 (HTTP method handler)
-        """Handle GET requests."""
-        path = self.path.split("?")[0]
-
-        if path == "/dashboard" or path == "/":
-            self._serve_dashboard_page()
-        elif path.startswith("/api/status"):
-            params = parse_qs(self.path.split("?", 1)[1]) if "?" in self.path else {}
-            include_loaded = params.get("include_loaded", ["false"])[0].lower() == "true"
-            self._serve_status_json(include_loaded=include_loaded)
-        elif path.startswith("/static/"):
-            filename = path[len("/static/"):]
-            self._serve_static_file(filename)
-        elif path == "/api/events":
-            self._serve_sse()
-        else:
-            self.send_error(404, "Not Found")
-
-    def do_HEAD(self) -> None:  # noqa: N802
-        """Handle HEAD requests (health checks)."""
-        path = self.path.split("?")[0]
-        if path == "/dashboard" or path == "/" or path.startswith("/api/"):
-            self.send_response(200, "OK")
-            self.end_headers()
-        else:
-            self.send_error(404, "Not Found")
-
-    def do_POST(self) -> None:  # noqa: N802 (HTTP method handler)
-        """Handle POST requests — used for warmup progress push events."""
-        path = self.path.split("?")[0]
-        if path == "/api/warmup-progress":
-            content_length = int(self.headers.get("Content-Length", 0))
-            body = self.rfile.read(content_length).decode("utf-8") if content_length else ""
-
-            # Parse SSE-style data: "data: {...}\n\n" or raw JSON.
-            payload: dict[str, Any] = {}
-            try:
-                if body.startswith("data:"):
-                    payload = json.loads(body[len("data:"):].strip())
-                else:
-                    payload = json.loads(body)
-            except (ValueError, TypeError):
-                pass
-            model_name = payload.get("model_name", "")
-            node_name = payload.get("node_name", "")
-            status = payload.get("status", "pending")
-
-            if not model_name or not node_name:
-                self.send_error(400, "Missing model_name or node_name")
-                return
-
-            # Broadcast to all SSE clients.
-            event_data = {"model_name": model_name, "node_name": node_name, "status": status}
-            self._emit_to_clients("warmup-progress", event_data)
-
-            self.send_response(204, "No Content")
-            self.end_headers()
-        else:
-            self.send_error(404, "Not Found")
-
-    def _serve_status_json_with_cache_bust(self) -> dict[str, Any]:
-        """Run discovery fresh and update the cache. Used after warmup."""
-        nodes = discover_fleet(self.fleet_config, include_loaded=False)
-        routes = get_agent_routes(self.fleet_config)
-        payload = {
-            "fleet": self.fleet_config.project.name,
-            "nodes": discovery_to_json(nodes),
-            "routes": routes_to_json(routes),
-        }
-        self.cache.put(payload)
-        return payload
 
     # ── Factory ──────────────────────────────────────────────
 
