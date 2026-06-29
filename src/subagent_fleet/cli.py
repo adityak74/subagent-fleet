@@ -246,12 +246,14 @@ def warmup(
 
 
 @app.command("ui")
-def ui_cmd(config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml")) -> None:
+def ui_cmd(
+    config: Annotated[Path, typer.Option("--config", help="Path to fleet.yaml.")] = Path("fleet.yaml"),
+    port: Annotated[int, typer.Option("--port", "-p", help="Port to bind the dashboard server.")] = 8080,
+) -> None:
     """Launch Generative UI dashboard."""
-    fleet = _load_or_exit(config)
-    console.print(f"[bold blue]Starting Generative UI dashboard for {fleet.project.name} on http://localhost:8080[/bold blue]")
-    console.print("[dim]Streaming Server-Sent Events (SSE) for dynamic React component rendering...[/dim]")
-    console.print("(Press Ctrl+C to stop)")
+    from subagent_fleet.ui import launch_dashboard
+
+    launch_dashboard(config_path=config, port=port)
 
 @app.command()
 def status(
