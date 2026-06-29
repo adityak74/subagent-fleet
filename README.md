@@ -75,7 +75,7 @@ Claude Code / coding harness
 
 A real-time screenshot from the Fleet Dashboard (running against a 3-node example fleet):
 
-![Fleet Dashboard](screenshots/fleet-dashboard-full-desktop.png)
+![Fleet Dashboard](images/fleet-dashboard-full-desktop.png)
 
 ### Why This Matters
 
@@ -93,11 +93,11 @@ Most local model setups have one machine, one model, one problem. When you hit l
 
 The fleet dashboard (`subagent-fleet ui`) is your operational center — one browser tab to monitor everything:
 
-![Fleet Dashboard](screenshots/fleet-dashboard-node-health.png)
+![Fleet Dashboard](images/fleet-dashboard-node-health.png)
 
 And it adapts to any screen size:
 
-![Mobile view](screenshots/fleet-dashboard-mobile-view.png)
+![Mobile view](images/fleet-dashboard-mobile-view.png)
 
 ## Features
 
@@ -112,7 +112,7 @@ And it adapts to any screen size:
 
 Run `subagent-fleet ui` to open a live-updating dashboard that monitors your fleet in real time via SSE:
 
-![Fleet Dashboard](screenshots/fleet-dashboard-full-desktop.png)
+![Fleet Dashboard](images/fleet-dashboard-full-desktop.png)
 
 The dashboard shows three things at a glance:
 
@@ -125,7 +125,7 @@ The dashboard shows three things at a glance:
 
 Responsive layout adapts to any screen size:
 
-![Mobile view](screenshots/fleet-dashboard-mobile-view.png)
+![Mobile view](images/fleet-dashboard-mobile-view.png)
 
 Start the dashboard in one command — point it at your fleet config:
 

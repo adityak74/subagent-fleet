@@ -74,15 +74,15 @@ subagent-fleet ui --config fleet.yaml
 
 Here's what the Fleet Dashboard looks like monitoring a 3-node example fleet:
 
-![Fleet Dashboard](screenshots/fleet-dashboard-full-desktop.png)
+![Fleet Dashboard](images/fleet-dashboard-full-desktop.png)
 
 A responsive screenshot showing node health status, agent routing, trace stream, and warmup progress:
 
-![Fleet Dashboard Detail](screenshots/fleet-dashboard-node-health.png)
+![Fleet Dashboard Detail](images/fleet-dashboard-node-health.png)
 
 And it adapts to any screen size — mobile view included:
 
-![Mobile View](screenshots/fleet-dashboard-mobile-view.png)
+![Mobile View](images/fleet-dashboard-mobile-view.png)
 
 Available commands:
 
