@@ -9,9 +9,13 @@ dist/
 build/
 *.egg-info/
 
-# Local generated outputs
-fleet.yaml
-litellm_config.yaml
+# Local generated outputs (root only, not in subdirectories)
+/fleet.yaml
+/litellm_config.yaml
 .env.subagent-fleet
 .subagent-fleet/
 .claude/agents/
+
+# Screenshot captures and Playwright traces
+screenshots/
+.playwright-mcp/

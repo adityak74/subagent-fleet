@@ -1,0 +1,39 @@
+project:
+  name: local-dev
+  gateway:
+    provider: litellm
+    host: 0.0.0.0
+    port: 4000
+
+nodes:
+  local:
+    endpoint: http://localhost:11434
+    tags: [local, fast]
+
+  worker:
+    endpoint: http://192.168.1.50:11434
+    tags: [heavy, coder]
+
+models:
+  heavy-coder:
+    node: worker
+    ollama_model: qwen2.5-coder:32b
+    litellm_alias: claude-sonnet-local
+    context: 32768
+    timeout: 600
+
+  small-coder:
+    node: local
+    ollama_model: qwen2.5-coder:7b
+    litellm_alias: claude-haiku-local
+
+agents:
+  planner:
+    model: small-coder
+    description: Use for planning.
+    tools: [Read, Grep, Glob]
+
+  implementer:
+    model: heavy-coder
+    description: Use for implementation.
+    tools: [Read, Grep, Glob, Edit, MultiEdit, Bash]

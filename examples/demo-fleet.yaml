@@ -1,0 +1,127 @@
+project:
+  name: dev-cluster
+  gateway:
+    provider: litellm
+    host: 0.0.0.0
+    port: 4000
+    master_key_env: LITELLM_MASTER_KEY
+
+# Three-node fleet: local laptop + Mac mini (64GB RAM) + GPU workstation
+nodes:
+  # Local machine — fast, always available for lightweight tasks
+  macbook-pro:
+    endpoint: http://localhost:11434
+    tags:
+      - controller
+      - local
+      - fast
+
+  # Mac mini with 64GB RAM — dedicated coding node
+  mac-mini-64gb:
+    endpoint: http://192.168.1.50:11434
+    tags:
+      - heavy
+      - coder
+      - reviewer
+
+  # GPU workstation — high-throughput inference
+  gpu-workstation:
+    endpoint: http://192.168.1.100:11434
+    tags:
+      - gpu
+      - batch
+      - summarizer
+
+models:
+  small-coder:
+    node: macbook-pro
+    ollama_model: qwen2.5-coder:7b
+    litellm_alias: claude-haiku-local
+    context: 8192
+    timeout: 300
+    max_parallel: 2
+
+  heavy-coder:
+    node: mac-mini-64gb
+    ollama_model: qwen2.5-coder:32b
+    litellm_alias: claude-sonnet-local
+    context: 32768
+    timeout: 600
+    max_parallel: 1
+
+  planner-model:
+    node: mac-mini-64gb
+    ollama_model: dolphin-math:8b
+    litellm_alias: math-planner-local
+    context: 16384
+    timeout: 450
+    max_parallel: 1
+
+  batch-summarizer:
+    node: gpu-workstation
+    ollama_model: llama3.1:70b
+    litellm_alias: llama-gpu-local
+    context: 131072
+    timeout: 900
+    max_parallel: 1
+
+agents:
+  planner:
+    model: small-coder
+    description: Use for planning, file discovery, task decomposition, and summarization.
+    tools:
+      - Read
+      - Grep
+      - Glob
+    prompt: |
+      You are a fast local planning agent.
+      Do not edit files.
+      Return a concise response with:
+       - plan
+       - relevant files
+       - risks
+       - next recommended agent
+
+  implementer:
+    model: heavy-coder
+    description: Use for implementation, bug fixes, refactors, and patch creation.
+    tools:
+      - Read
+      - Grep
+      - Glob
+      - Edit
+      - MultiEdit
+      - Bash
+    prompt: |
+      You are a senior implementation agent.
+      Make minimal, correct changes.
+      Prefer small patches.
+      Run relevant checks when possible.
+      Explain what changed and why.
+
+  reviewer:
+    model: planner-model
+    description: Use after implementation to review diffs, tests, regressions, and maintainability.
+    tools:
+      - Read
+      - Grep
+      - Glob
+      - Bash
+    prompt: |
+      You are a strict code reviewer.
+      Focus on correctness, regressions, missing tests, security issues,
+      over-engineering, and maintainability.
+      Review the diff and test output.
+      Return only actionable issues.
+
+  summarizer:
+    model: batch-summarizer
+    description: Use for large-context summarization, codebase analysis, and documentation generation.
+    tools:
+      - Read
+      - Grep
+      - Glob
+      - Bash
+    prompt: |
+      You are a batch summarizer agent optimized for large documents.
+      Produce concise summaries with key findings and action items.

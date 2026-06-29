@@ -15,7 +15,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/adityak74/subagent-fleet)
 ![GitHub issues](https://img.shields.io/github/issues/adityak74/subagent-fleet)
 
-[Quickstart](#quickstart) • [Configuration](#configuration) • [Generated Files](#generated-files) • [Security](#security) • [Roadmap](#roadmap)
+[Quickstart](#quickstart) • [Configuration](#configuration) • [Examples](examples/) • [Generated Files](#generated-files) • [Security](#security) • [Roadmap](#roadmap)
 
 </div>
 
@@ -37,6 +37,68 @@ Claude Code / coding harness
             +-- Ollama node: workstation        -> implementer, reviewer
 ```
 
+### How It Works
+
+`subagent-fleet` is a **compute control plane** for local LLMs. It doesn't replace Ollama or LiteLLM — it sits above them as an intelligent layer that routes, monitors, warms, and traces agent work across your fleet:
+
+```text
+┌───────────────────────────────  Layer 1: Topology  ───────────────────────────────┐
+│                                                                                     │
+│  Your fleet.yaml defines the topology — nodes (machines), models (LLMs),          │
+│  and agents (roles). This is your single source of truth.                          │
+│                                                                                     │
+│  nodes:                models:               agents:                               │
+│    macbook-pro         small-coder           planner     -> fast, planning          │
+│    mac-mini-64gb       heavy-coder           implementer -> large, coding           │
+│    gpu-workstation     batch-summarizer      reviewer    -> review, safety         │
+│                                      summarizer   -> summary, docs                 │
+│                                                                                     │
+└───────────────────────────────  Layer 2: Generation  ─────────────────────────────┘
+│                                                                                     │
+│  subagent-fleet generate produces:                                                  │
+│    • litellm_config.yaml   — a proxy that routes requests to the right node        │
+│    • .claude/agents/*.md — per-agent definitions Claude Code uses for tools        │
+│    • .env.subagent-fleet — env vars pointing your harness at the local gateway     │
+│                                                                                     │
+└───────────────────────────────  Layer 3: Runtime     ─────────────────────────────┘
+│                                                                                     │
+│  While Claude Code runs, subagent-fleet tracks everything:                         │
+│    • Node health — who's online, who dropped                                     │
+│    • Agent routes  — which model each agent is hitting                            │
+│    • Execution traces — full LiteLLM log tail, colored by severity              │
+│    • Warmup progress — preload status for models before a session starts          │
+│                                                                                     │
+│  All of this streams live to the SSE dashboard at http://localhost:8080             │
+│                                                                                     │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+A real-time screenshot from the Fleet Dashboard (running against a 3-node example fleet):
+
+![Fleet Dashboard](screenshots/fleet-dashboard-full-desktop.png)
+
+### Why This Matters
+
+Most local model setups have one machine, one model, one problem. When you hit limits — slow coding on a small model, GPU underutilized for batch tasks, no visibility into agent routing — you either buy bigger hardware or accept slower output.
+
+`subagent-fleet` solves this with **role-based routing**:
+
+| Problem | How `subagent-fleet` fixes it |
+| --- | --- |
+| Single point of failure | Multiple nodes, automatic failover when one drops offline |
+| One model for all tasks | Fast model for planning (cheap), large model for coding (capable) |
+| No visibility into agent work | SSE dashboard shows real-time node health, routing, and traces |
+| Cold models slow startup | `subagent-fleet warmup` preloads models so they're ready before your session starts |
+| Wasted GPU capacity on batch tasks | Offload summarization and docs to the biggest model, keep planning models lightweight |
+
+The fleet dashboard (`subagent-fleet ui`) is your operational center — one browser tab to monitor everything:
+
+![Fleet Dashboard](screenshots/fleet-dashboard-node-health.png)
+
+And it adapts to any screen size:
+
+![Mobile view](screenshots/fleet-dashboard-mobile-view.png)
+
 ## Features
 
 - Monitor node health in real time — unreachable nodes are isolated automatically.
@@ -45,6 +107,32 @@ Claude Code / coding harness
 - Stream and trace LiteLLM execution logs in real time.
 - Generate LiteLLM and Claude Code agent configuration from `fleet.yaml`.
 - Validate, discover, and inspect your fleet with a single command.
+
+## Interactive Fleet Dashboard
+
+Run `subagent-fleet ui` to open a live-updating dashboard that monitors your fleet in real time via SSE:
+
+![Fleet Dashboard](screenshots/fleet-dashboard-full-desktop.png)
+
+The dashboard shows three things at a glance:
+
+| Panel | What it does |
+| --- | --- |
+| **Node Health** | Real-time online/offline status per node, with discovered Ollama models and endpoints. |
+| **Agent Routing** | Which agent maps to which model on which node — instantly visible. |
+| **Live Trace Stream** | Tail LiteLLM logs as they happen, colored by severity (routing → success → error). |
+| **Model Warmup Progress** | Track preload status when you run `subagent-fleet warmup` before a coding session. |
+
+Responsive layout adapts to any screen size:
+
+![Mobile view](screenshots/fleet-dashboard-mobile-view.png)
+
+Start the dashboard in one command — point it at your fleet config:
+
+```bash
+subagent-fleet ui --config fleet.yaml
+# Opens http://localhost:8080
+```
 
 ## Status
 
@@ -306,6 +394,25 @@ Return a concise response with:
 - relevant files
 - risks
 - next recommended agent
+```
+
+## Examples
+
+Ready-to-use fleet configurations in [`examples/`](examples/):
+
+| Directory | What it shows |
+| --- | --- |
+| `ollama-laptop-only/` | Single-machine setup — everything on one laptop running Ollama |
+| `multi-node-cluster/` | Three-node fleet — laptop + Mac mini (64GB) + GPU workstation |
+| `litellm-proxy/` | Generated LiteLLM config showing model-to-node routing |
+| `claude-agents/` | Claude Code agent definitions generated from a fleet YAML |
+
+Quick start with the multi-node example:
+
+```bash
+subagent-fleet validate --config examples/multi-node-cluster/fleet.yaml
+subagent-fleet generate --config examples/multi-node-cluster/fleet.yaml
+subagent-fleet ui --config examples/multi-node-cluster/fleet.yaml
 ```
 
 ## Commands
