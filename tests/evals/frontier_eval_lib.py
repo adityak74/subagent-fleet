@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import random
 import re
+import time
 
 PROMPTS: list[dict] = [
     {
@@ -198,3 +199,29 @@ def parse_judge_response(raw_text: str, expected_labels: list[str]) -> dict[str,
             raise ValueError(f"Judge score for {label!r} out of range [0,10]: {score}")
         result[label] = {"score": score, "reasoning": str(entry.get("reasoning", ""))}
     return result
+
+
+def fetch_generation_cost(
+    client,
+    generation_id: str,
+    api_key: str,
+    *,
+    max_attempts: int = 5,
+    sleep_fn=time.sleep,
+) -> float:
+    """Poll OpenRouter's generation stats endpoint for the real USD cost.
+
+    Cost data can lag slightly behind the completion, so this retries with
+    a short delay between attempts. Returns 0.0 if cost is never available.
+    """
+    url = f"https://openrouter.ai/api/v1/generation?id={generation_id}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    for attempt in range(max_attempts):
+        resp = client.get(url, headers=headers)
+        if resp.status_code == 200:
+            data = resp.json().get("data", {})
+            if "total_cost" in data:
+                return float(data["total_cost"])
+        if attempt < max_attempts - 1:
+            sleep_fn(1.0)
+    return 0.0

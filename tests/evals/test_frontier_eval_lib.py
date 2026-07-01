@@ -9,6 +9,7 @@ from .frontier_eval_lib import (
     PROMPTS,
     assign_labels,
     build_judge_prompt,
+    fetch_generation_cost,
     parse_judge_response,
 )
 
@@ -89,3 +90,50 @@ def test_parse_judge_response_raises_on_missing_score_key():
 def test_parse_judge_response_raises_on_unparseable_text():
     with pytest.raises(ValueError):
         parse_judge_response("not json at all", ["A"])
+
+
+class _FakeResponse:
+    def __init__(self, status_code, payload):
+        self.status_code = status_code
+        self._payload = payload
+
+    def json(self):
+        return self._payload
+
+
+class _FakeClient:
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.calls = 0
+
+    def get(self, url, headers=None):
+        self.calls += 1
+        return self._responses.pop(0)
+
+
+def test_fetch_generation_cost_returns_cost_when_available():
+    client = _FakeClient([
+        _FakeResponse(200, {"data": {"total_cost": 0.0042}}),
+    ])
+    cost = fetch_generation_cost(client, "gen-123", "fake-key", sleep_fn=lambda s: None)
+    assert cost == 0.0042
+    assert client.calls == 1
+
+
+def test_fetch_generation_cost_retries_until_cost_present():
+    client = _FakeClient([
+        _FakeResponse(404, {}),
+        _FakeResponse(200, {"data": {"total_cost": 0.001}}),
+    ])
+    cost = fetch_generation_cost(client, "gen-123", "fake-key", sleep_fn=lambda s: None)
+    assert cost == 0.001
+    assert client.calls == 2
+
+
+def test_fetch_generation_cost_gives_up_after_max_attempts():
+    client = _FakeClient([_FakeResponse(404, {}) for _ in range(5)])
+    cost = fetch_generation_cost(
+        client, "gen-123", "fake-key", max_attempts=5, sleep_fn=lambda s: None
+    )
+    assert cost == 0.0
+    assert client.calls == 5
