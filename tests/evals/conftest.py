@@ -7,6 +7,7 @@ Static-only tests use inline YAML to avoid network calls.
 from __future__ import annotations
 
 import json
+import os
 import time
 import threading
 import httpx
@@ -84,6 +85,14 @@ def fleet_yaml(live_fleet: dict) -> str:
 @pytest.fixture()
 def cli_runner() -> CliRunner:
     return CliRunner()
+
+
+@pytest.fixture(scope="session")
+def openrouter_api_key() -> str:
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if not key:
+        pytest.skip("OPENROUTER_API_KEY not set — skipping frontier comparison eval")
+    return key
 
 
 # ── Fixtures: HTTP helpers ────────────────────────────────────────────────
