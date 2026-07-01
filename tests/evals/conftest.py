@@ -147,6 +147,12 @@ def mock_ollama_offline(monkeypatch: pytest.MonkeyPatch) -> None:
 
 import pytest
 
+
+def pytest_addoption(parser):
+    """Register --run-live flag for live cluster evals."""
+    parser.addoption("--run-live", action="store_true", default=False, help="Enable live cluster eval tests")
+
+
 def pytest_runtest_setup(item: pytest.Item) -> None:
     """Skip live tests unless --run-live is passed."""
     if item.get_closest_marker("live") and not item.config.getoption("--run-live", default=False):

@@ -99,6 +99,48 @@ And it adapts to any screen size:
 
 ![Mobile view](images/fleet-dashboard-mobile-view.png)
 
+## Verified With Evals
+
+Every release ships with **482 tests** (270 unit + 212 live cluster evals) that run against a real 3-node fleet on the developer's machines. This isn't toy testing — every test hits actual Ollama endpoints and validates LLM responses from your own hardware.
+
+### Eval Suite Breakdown
+
+| Category | What It Proves | Tests |
+| --- | --- | --- |
+| **Node Discovery** | Healthy nodes report models; offline nodes don't crash the fleet | 15 |
+| **LiteLLM Routing** | `heavy-coder` routes to mac-mini, `small-planner` routes to laptop | 30 |
+| **Agent Config Generation** | Frontmatter, tool lists, model aliases — all match fleet.yaml exactly | 40 |
+| **Claude Agents Config** | Planners get read-only tools; implementers get Edit, Bash, MultiEdit | 40 |
+| **Aider Config** | Model strings and API base point to the correct local gateway | 15 |
+| **Model Warmup** | Preload works for empty responses and minimal prompts on all nodes | 20 |
+| **Fleet Validation** | Bad YAML, missing fields, invalid ports, unsafe agent names — all rejected | 30 |
+| **Security & Edge Cases** | Malformed JSON, oversized models, unknown fields — gracefully handled | 25 |
+| **Dashboard / SSE** | HTTP endpoints return correct JSON; static files load; node status streams live | 35 |
+| **Prompt Quality** | Math addition, code review, classification, multi-step reasoning across all 3 nodes | 137 |
+
+### Real-World Validation Against Our Fleet
+
+We run these evals every release against our own production-like fleet:
+
+```text
+┌──────────────┬─────────────────────┬──────────┐
+│ Node         │ Model               │ Role     │
+├──────────────┼─────────────────────┼──────────┤
+│ laptop       │ qwen3.6:35b-mlx     │ planner  │
+│ mac-mini-64b │ qwen3-coder:latest  │ coder    │
+│ mac-mini-16g │ gemma4:latest       │ planner  │
+└──────────────┴─────────────────────┴──────────┘
+```
+
+The prompt evals alone verify that each node in your fleet can actually do its assigned job — math on the small model, code review on the heavy one. If a node goes offline mid-test, it fails. No mocks. No stubs.
+
+Run the eval suite locally:
+
+```bash
+cd src
+python -m pytest tests/evals/ --tb=short
+```
+
 ## Features
 
 - Monitor node health in real time — unreachable nodes are isolated automatically.
