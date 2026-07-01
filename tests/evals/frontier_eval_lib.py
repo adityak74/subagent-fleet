@@ -6,6 +6,8 @@ the live orchestration that calls the fleet gateway and OpenRouter.
 
 from __future__ import annotations
 
+import random
+
 PROMPTS: list[dict] = [
     {
         "id": "binary_search_off_by_one",
@@ -126,3 +128,41 @@ PROMPTS: list[dict] = [
         ),
     },
 ]
+
+
+def assign_labels(names: list[str], rng: random.Random) -> dict[str, str]:
+    """Shuffle names onto letter labels A, B, C... to avoid judge position bias."""
+    letters = [chr(ord("A") + i) for i in range(len(names))]
+    shuffled_letters = letters[:]
+    rng.shuffle(shuffled_letters)
+    return dict(zip(names, shuffled_letters))
+
+
+def build_judge_prompt(task: str, labeled_responses: dict[str, str]) -> str:
+    """Build the rubric prompt sent to the judge model.
+
+    labeled_responses maps a letter label ("A", "B", ...) to that
+    response's text. Labels are pre-shuffled by assign_labels so the judge
+    never learns which system produced which response.
+    """
+    responses_block = "\n\n".join(
+        f"Response {label}:\n{text}"
+        for label, text in sorted(labeled_responses.items())
+    )
+    labels_list = ", ".join(f'"{l}"' for l in sorted(labeled_responses.keys()))
+    return (
+        "You are grading responses to a coding task. Score each response "
+        "0-10 on:\n"
+        "- Correctness (does it work / handle edge cases) — weighted heaviest\n"
+        "- Code quality (readability, idiomaticity)\n"
+        "- Completeness (does it fully address the ask)\n\n"
+        f"Task:\n{task}\n\n"
+        f"{responses_block}\n\n"
+        "Return ONLY a JSON object mapping each label to its score and a "
+        "one-sentence reasoning, in this exact shape (no other text):\n"
+        "{" + ", ".join(
+            f'"{l}": {{"score": <0-10 number>, "reasoning": "<one sentence>"}}'
+            for l in sorted(labeled_responses.keys())
+        ) + "}\n"
+        f"Labels to score: {labels_list}"
+    )
