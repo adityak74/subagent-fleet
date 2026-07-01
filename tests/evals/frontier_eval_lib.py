@@ -7,9 +7,11 @@ the live orchestration that calls the fleet gateway and OpenRouter.
 from __future__ import annotations
 
 import json
+import pathlib
 import random
 import re
 import time
+from collections import defaultdict
 
 PROMPTS: list[dict] = [
     {
@@ -225,3 +227,46 @@ def fetch_generation_cost(
         if attempt < max_attempts - 1:
             sleep_fn(1.0)
     return 0.0
+
+
+def _aggregate_by_system(rows: list[dict]) -> dict[str, dict]:
+    by_system: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_system[row["system"]].append(row)
+    aggregate = {}
+    for system, system_rows in by_system.items():
+        aggregate[system] = {
+            "mean_score": sum(r["score"] for r in system_rows) / len(system_rows),
+            "mean_latency_s": sum(r["latency_s"] for r in system_rows) / len(system_rows),
+            "total_cost_usd": sum(r["cost_usd"] for r in system_rows),
+        }
+    return aggregate
+
+
+def format_markdown_table(rows: list[dict]) -> str:
+    lines = [
+        "| Prompt | System | Score | Latency (s) | Cost (USD) |",
+        "|---|---|---|---|---|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row['prompt_id']} | {row['system']} | {row['score']:.1f} | "
+            f"{row['latency_s']:.2f} | ${row['cost_usd']:.4f} |"
+        )
+    lines.append("")
+    lines.append("**Aggregate**")
+    lines.append("")
+    lines.append("| System | Mean Score | Mean Latency (s) | Total Cost (USD) |")
+    lines.append("|---|---|---|---|")
+    for system, agg in _aggregate_by_system(rows).items():
+        lines.append(
+            f"| {system} | {agg['mean_score']:.2f} | {agg['mean_latency_s']:.2f} | "
+            f"${agg['total_cost_usd']:.4f} |"
+        )
+    return "\n".join(lines)
+
+
+def write_json_report(rows: list[dict], path: pathlib.Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"rows": rows, "aggregate": _aggregate_by_system(rows)}
+    path.write_text(json.dumps(payload, indent=2))

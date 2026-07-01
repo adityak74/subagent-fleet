@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json as json_module
 import pytest
 import random
 
@@ -10,7 +11,9 @@ from .frontier_eval_lib import (
     assign_labels,
     build_judge_prompt,
     fetch_generation_cost,
+    format_markdown_table,
     parse_judge_response,
+    write_json_report,
 )
 
 
@@ -137,3 +140,28 @@ def test_fetch_generation_cost_gives_up_after_max_attempts():
     )
     assert cost == 0.0
     assert client.calls == 5
+
+
+_SAMPLE_ROWS = [
+    {"prompt_id": "p1", "system": "fleet", "score": 8.0, "latency_s": 2.1, "cost_usd": 0.0},
+    {"prompt_id": "p1", "system": "sonnet", "score": 9.0, "latency_s": 1.5, "cost_usd": 0.01},
+    {"prompt_id": "p2", "system": "fleet", "score": 7.0, "latency_s": 2.5, "cost_usd": 0.0},
+    {"prompt_id": "p2", "system": "sonnet", "score": 8.5, "latency_s": 1.7, "cost_usd": 0.012},
+]
+
+
+def test_format_markdown_table_includes_all_rows_and_aggregate():
+    table = format_markdown_table(_SAMPLE_ROWS)
+    assert "p1" in table and "p2" in table
+    assert "fleet" in table and "sonnet" in table
+    assert "Aggregate" in table
+
+
+def test_write_json_report_writes_rows_and_aggregate(tmp_path):
+    out_path = tmp_path / "report.json"
+    write_json_report(_SAMPLE_ROWS, out_path)
+    data = json_module.loads(out_path.read_text())
+    assert data["rows"] == _SAMPLE_ROWS
+    assert "fleet" in data["aggregate"]
+    assert data["aggregate"]["fleet"]["mean_score"] == 7.5
+    assert data["aggregate"]["fleet"]["total_cost_usd"] == 0.0
