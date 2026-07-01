@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import pytest
 import random
 
-from .frontier_eval_lib import PROMPTS, assign_labels, build_judge_prompt
+from .frontier_eval_lib import (
+    PROMPTS,
+    assign_labels,
+    build_judge_prompt,
+    parse_judge_response,
+)
 
 
 def test_prompts_dataset_has_eight_entries():
@@ -48,11 +54,6 @@ def test_build_judge_prompt_includes_task_and_all_labeled_responses():
     assert "JSON" in prompt
 
 
-import pytest
-
-from .frontier_eval_lib import parse_judge_response
-
-
 def test_parse_judge_response_extracts_scores_and_reasoning():
     raw = '{"A": {"score": 8, "reasoning": "Correct and clean."}, "B": {"score": 3.5, "reasoning": "Buggy."}}'
     result = parse_judge_response(raw, ["A", "B"])
@@ -75,6 +76,12 @@ def test_parse_judge_response_raises_on_missing_label():
 
 def test_parse_judge_response_raises_on_out_of_range_score():
     raw = '{"A": {"score": 15, "reasoning": "ok"}}'
+    with pytest.raises(ValueError):
+        parse_judge_response(raw, ["A"])
+
+
+def test_parse_judge_response_raises_on_missing_score_key():
+    raw = '{"A": {"reasoning": "ok"}}'
     with pytest.raises(ValueError):
         parse_judge_response(raw, ["A"])
 

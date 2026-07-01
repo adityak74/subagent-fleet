@@ -187,8 +187,13 @@ def parse_judge_response(raw_text: str, expected_labels: list[str]) -> dict[str,
     for label in expected_labels:
         if label not in data:
             raise ValueError(f"Judge response missing label {label!r}: {data!r}")
-        entry = data[label]
-        score = float(entry["score"])
+        try:
+            entry = data[label]
+            score = float(entry["score"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Judge response entry for {label!r} is missing or has a malformed score: {entry!r}"
+            ) from exc
         if not (0 <= score <= 10):
             raise ValueError(f"Judge score for {label!r} out of range [0,10]: {score}")
         result[label] = {"score": score, "reasoning": str(entry.get("reasoning", ""))}
