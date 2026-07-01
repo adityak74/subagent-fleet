@@ -1,0 +1,272 @@
+"""Pure-logic helpers for the fleet-vs-frontier coding eval.
+
+No network I/O in this module — see test_frontier_comparison_live.py for
+the live orchestration that calls the fleet gateway and OpenRouter.
+"""
+
+from __future__ import annotations
+
+import json
+import pathlib
+import random
+import re
+import time
+from collections import defaultdict
+
+PROMPTS: list[dict] = [
+    {
+        "id": "binary_search_off_by_one",
+        "title": "Fix off-by-one bug in binary search",
+        "task": (
+            "This binary search has an off-by-one bug that makes it miss the "
+            "last element of the array. Find and fix the bug. Return only the "
+            "corrected Python code.\n\n"
+            "```python\n"
+            "def binary_search(arr, target):\n"
+            "    lo, hi = 0, len(arr) - 1\n"
+            "    while lo < hi:\n"
+            "        mid = (lo + hi) // 2\n"
+            "        if arr[mid] == target:\n"
+            "            return mid\n"
+            "        elif arr[mid] < target:\n"
+            "            lo = mid + 1\n"
+            "        else:\n"
+            "            hi = mid - 1\n"
+            "    return -1\n"
+            "```"
+        ),
+    },
+    {
+        "id": "lru_cache",
+        "title": "Implement an LRU cache",
+        "task": (
+            "Implement a Python class LRUCache(capacity: int) with O(1) get(key) "
+            "and put(key, value) methods. get returns -1 if the key is missing. "
+            "When capacity is exceeded, evict the least-recently-used entry. "
+            "Return only the Python code."
+        ),
+    },
+    {
+        "id": "refactor_nested_ifs",
+        "title": "Refactor nested ifs into early returns",
+        "task": (
+            "Refactor this function to use early returns instead of nested ifs, "
+            "preserving its exact behavior. Return only the refactored Python code.\n\n"
+            "```python\n"
+            "def classify(age, has_license, has_car):\n"
+            "    if age >= 18:\n"
+            "        if has_license:\n"
+            "            if has_car:\n"
+            "                return 'can drive own car'\n"
+            "            else:\n"
+            "                return 'can drive, no car'\n"
+            "        else:\n"
+            "            return 'needs license'\n"
+            "    else:\n"
+            "        return 'too young'\n"
+            "```"
+        ),
+    },
+    {
+        "id": "pytest_unit_tests",
+        "title": "Write pytest unit tests with edge cases",
+        "task": (
+            "Write pytest unit tests (including edge cases like empty input and "
+            "negative numbers) for this function. Return only the test code.\n\n"
+            "```python\n"
+            "def clamp(value, lo, hi):\n"
+            "    return max(lo, min(value, hi))\n"
+            "```"
+        ),
+    },
+    {
+        "id": "race_condition_fix",
+        "title": "Diagnose and fix a race condition",
+        "task": (
+            "This counter class has a race condition when incremented from "
+            "multiple threads. Diagnose the bug and return corrected Python "
+            "code that is thread-safe.\n\n"
+            "```python\n"
+            "class Counter:\n"
+            "    def __init__(self):\n"
+            "        self.value = 0\n"
+            "\n"
+            "    def increment(self):\n"
+            "        self.value = self.value + 1\n"
+            "```"
+        ),
+    },
+    {
+        "id": "token_bucket_rate_limiter",
+        "title": "Implement a token-bucket rate limiter",
+        "task": (
+            "Implement a Python class TokenBucket(rate: float, capacity: int) "
+            "with a method allow() -> bool that returns True if a request is "
+            "allowed under the token-bucket algorithm (refilling `rate` tokens "
+            "per second, capped at `capacity`), False otherwise. Return only "
+            "the Python code."
+        ),
+    },
+    {
+        "id": "n_plus_1_to_join",
+        "title": "Rewrite N+1 query pattern into a JOIN",
+        "task": (
+            "This SQLAlchemy code has an N+1 query problem: it issues one query "
+            "per author to fetch their books. Rewrite it to use a single query "
+            "with a JOIN (or eager loading). Return only the corrected Python code.\n\n"
+            "```python\n"
+            "authors = session.query(Author).all()\n"
+            "for author in authors:\n"
+            "    books = session.query(Book).filter(Book.author_id == author.id).all()\n"
+            "    print(author.name, [b.title for b in books])\n"
+            "```"
+        ),
+    },
+    {
+        "id": "fastapi_endpoint",
+        "title": "Implement a FastAPI endpoint with validation",
+        "task": (
+            "Implement a FastAPI POST endpoint `/users` that accepts JSON body "
+            "{name: str, email: str, age: int}, validates that age >= 0 and "
+            "email contains '@' (return HTTP 422 if invalid), and returns the "
+            "created user with a generated integer id. Return only the Python code."
+        ),
+    },
+]
+
+
+def assign_labels(names: list[str], rng: random.Random) -> dict[str, str]:
+    """Shuffle names onto letter labels A, B, C... to avoid judge position bias."""
+    letters = [chr(ord("A") + i) for i in range(len(names))]
+    shuffled_letters = letters[:]
+    rng.shuffle(shuffled_letters)
+    return dict(zip(names, shuffled_letters))
+
+
+def build_judge_prompt(task: str, labeled_responses: dict[str, str]) -> str:
+    """Build the rubric prompt sent to the judge model.
+
+    labeled_responses maps a letter label ("A", "B", ...) to that
+    response's text. Labels are pre-shuffled by assign_labels so the judge
+    never learns which system produced which response.
+    """
+    responses_block = "\n\n".join(
+        f"Response {label}:\n{text}"
+        for label, text in sorted(labeled_responses.items())
+    )
+    labels_list = ", ".join(f'"{l}"' for l in sorted(labeled_responses.keys()))
+    return (
+        "You are grading responses to a coding task. Score each response "
+        "0-10 on:\n"
+        "- Correctness (does it work / handle edge cases) — weighted heaviest\n"
+        "- Code quality (readability, idiomaticity)\n"
+        "- Completeness (does it fully address the ask)\n\n"
+        f"Task:\n{task}\n\n"
+        f"{responses_block}\n\n"
+        "Return ONLY a JSON object mapping each label to its score and a "
+        "one-sentence reasoning, in this exact shape (no other text):\n"
+        "{" + ", ".join(
+            f'"{l}": {{"score": <0-10 number>, "reasoning": "<one sentence>"}}'
+            for l in sorted(labeled_responses.keys())
+        ) + "}\n"
+        f"Labels to score: {labels_list}"
+    )
+
+
+def parse_judge_response(raw_text: str, expected_labels: list[str]) -> dict[str, dict]:
+    """Extract {label: {"score": float, "reasoning": str}} from the judge's raw text.
+
+    Tolerates surrounding prose by extracting the first {...} block.
+    """
+    match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+    if not match:
+        raise ValueError(f"No JSON object found in judge response: {raw_text!r}")
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Judge response is not valid JSON: {raw_text!r}") from exc
+
+    result: dict[str, dict] = {}
+    for label in expected_labels:
+        if label not in data:
+            raise ValueError(f"Judge response missing label {label!r}: {data!r}")
+        try:
+            entry = data[label]
+            score = float(entry["score"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Judge response entry for {label!r} is missing or has a malformed score: {entry!r}"
+            ) from exc
+        if not (0 <= score <= 10):
+            raise ValueError(f"Judge score for {label!r} out of range [0,10]: {score}")
+        result[label] = {"score": score, "reasoning": str(entry.get("reasoning", ""))}
+    return result
+
+
+def fetch_generation_cost(
+    client,
+    generation_id: str,
+    api_key: str,
+    *,
+    max_attempts: int = 5,
+    sleep_fn=time.sleep,
+) -> float:
+    """Poll OpenRouter's generation stats endpoint for the real USD cost.
+
+    Cost data can lag slightly behind the completion, so this retries with
+    a short delay between attempts. Returns 0.0 if cost is never available.
+    """
+    url = f"https://openrouter.ai/api/v1/generation?id={generation_id}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    for attempt in range(max_attempts):
+        resp = client.get(url, headers=headers)
+        if resp.status_code == 200:
+            data = resp.json().get("data", {})
+            if "total_cost" in data:
+                return float(data["total_cost"])
+        if attempt < max_attempts - 1:
+            sleep_fn(1.0)
+    return 0.0
+
+
+def _aggregate_by_system(rows: list[dict]) -> dict[str, dict]:
+    by_system: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_system[row["system"]].append(row)
+    aggregate = {}
+    for system, system_rows in by_system.items():
+        aggregate[system] = {
+            "mean_score": sum(r["score"] for r in system_rows) / len(system_rows),
+            "mean_latency_s": sum(r["latency_s"] for r in system_rows) / len(system_rows),
+            "total_cost_usd": sum(r["cost_usd"] for r in system_rows),
+        }
+    return aggregate
+
+
+def format_markdown_table(rows: list[dict]) -> str:
+    lines = [
+        "| Prompt | System | Score | Latency (s) | Cost (USD) |",
+        "|---|---|---|---|---|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row['prompt_id']} | {row['system']} | {row['score']:.1f} | "
+            f"{row['latency_s']:.2f} | ${row['cost_usd']:.4f} |"
+        )
+    lines.append("")
+    lines.append("**Aggregate**")
+    lines.append("")
+    lines.append("| System | Mean Score | Mean Latency (s) | Total Cost (USD) |")
+    lines.append("|---|---|---|---|")
+    for system, agg in _aggregate_by_system(rows).items():
+        lines.append(
+            f"| {system} | {agg['mean_score']:.2f} | {agg['mean_latency_s']:.2f} | "
+            f"${agg['total_cost_usd']:.4f} |"
+        )
+    return "\n".join(lines)
+
+
+def write_json_report(rows: list[dict], path: pathlib.Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"rows": rows, "aggregate": _aggregate_by_system(rows)}
+    path.write_text(json.dumps(payload, indent=2))

@@ -1,0 +1,167 @@
+"""Unit tests for frontier_eval_lib.py (no network calls)."""
+
+from __future__ import annotations
+
+import json as json_module
+import pytest
+import random
+
+from .frontier_eval_lib import (
+    PROMPTS,
+    assign_labels,
+    build_judge_prompt,
+    fetch_generation_cost,
+    format_markdown_table,
+    parse_judge_response,
+    write_json_report,
+)
+
+
+def test_prompts_dataset_has_eight_entries():
+    assert len(PROMPTS) == 8
+
+
+def test_prompts_dataset_ids_are_unique():
+    ids = [p["id"] for p in PROMPTS]
+    assert len(ids) == len(set(ids))
+
+
+def test_prompts_dataset_entries_have_required_fields():
+    for p in PROMPTS:
+        assert isinstance(p["id"], str) and p["id"]
+        assert isinstance(p["title"], str) and p["title"]
+        assert isinstance(p["task"], str) and len(p["task"]) > 20
+
+
+def test_assign_labels_maps_every_name_to_unique_label():
+    labels = assign_labels(["fleet", "sonnet", "gpt4o_mini"], random.Random(42))
+    assert set(labels.keys()) == {"fleet", "sonnet", "gpt4o_mini"}
+    assert set(labels.values()) == {"A", "B", "C"}
+
+
+def test_assign_labels_is_deterministic_for_same_seed():
+    labels1 = assign_labels(["fleet", "sonnet", "gpt4o_mini"], random.Random(1))
+    labels2 = assign_labels(["fleet", "sonnet", "gpt4o_mini"], random.Random(1))
+    assert labels1 == labels2
+
+
+def test_build_judge_prompt_includes_task_and_all_labeled_responses():
+    prompt = build_judge_prompt(
+        "Write a function that adds two numbers.",
+        {"A": "def add(a, b): return a + b", "B": "def add(a,b):\n    return a-b"},
+    )
+    assert "Write a function that adds two numbers." in prompt
+    assert "def add(a, b): return a + b" in prompt
+    assert "def add(a,b):\n    return a-b" in prompt
+    assert "Response A" in prompt
+    assert "Response B" in prompt
+    assert "JSON" in prompt
+
+
+def test_parse_judge_response_extracts_scores_and_reasoning():
+    raw = '{"A": {"score": 8, "reasoning": "Correct and clean."}, "B": {"score": 3.5, "reasoning": "Buggy."}}'
+    result = parse_judge_response(raw, ["A", "B"])
+    assert result["A"]["score"] == 8.0
+    assert result["A"]["reasoning"] == "Correct and clean."
+    assert result["B"]["score"] == 3.5
+
+
+def test_parse_judge_response_handles_surrounding_prose():
+    raw = 'Here is my evaluation:\n{"A": {"score": 7, "reasoning": "ok"}}\nThanks.'
+    result = parse_judge_response(raw, ["A"])
+    assert result["A"]["score"] == 7.0
+
+
+def test_parse_judge_response_raises_on_missing_label():
+    raw = '{"A": {"score": 7, "reasoning": "ok"}}'
+    with pytest.raises(ValueError):
+        parse_judge_response(raw, ["A", "B"])
+
+
+def test_parse_judge_response_raises_on_out_of_range_score():
+    raw = '{"A": {"score": 15, "reasoning": "ok"}}'
+    with pytest.raises(ValueError):
+        parse_judge_response(raw, ["A"])
+
+
+def test_parse_judge_response_raises_on_missing_score_key():
+    raw = '{"A": {"reasoning": "ok"}}'
+    with pytest.raises(ValueError):
+        parse_judge_response(raw, ["A"])
+
+
+def test_parse_judge_response_raises_on_unparseable_text():
+    with pytest.raises(ValueError):
+        parse_judge_response("not json at all", ["A"])
+
+
+class _FakeResponse:
+    def __init__(self, status_code, payload):
+        self.status_code = status_code
+        self._payload = payload
+
+    def json(self):
+        return self._payload
+
+
+class _FakeClient:
+    def __init__(self, responses):
+        self._responses = list(responses)
+        self.calls = 0
+
+    def get(self, url, headers=None):
+        self.calls += 1
+        return self._responses.pop(0)
+
+
+def test_fetch_generation_cost_returns_cost_when_available():
+    client = _FakeClient([
+        _FakeResponse(200, {"data": {"total_cost": 0.0042}}),
+    ])
+    cost = fetch_generation_cost(client, "gen-123", "fake-key", sleep_fn=lambda s: None)
+    assert cost == 0.0042
+    assert client.calls == 1
+
+
+def test_fetch_generation_cost_retries_until_cost_present():
+    client = _FakeClient([
+        _FakeResponse(404, {}),
+        _FakeResponse(200, {"data": {"total_cost": 0.001}}),
+    ])
+    cost = fetch_generation_cost(client, "gen-123", "fake-key", sleep_fn=lambda s: None)
+    assert cost == 0.001
+    assert client.calls == 2
+
+
+def test_fetch_generation_cost_gives_up_after_max_attempts():
+    client = _FakeClient([_FakeResponse(404, {}) for _ in range(5)])
+    cost = fetch_generation_cost(
+        client, "gen-123", "fake-key", max_attempts=5, sleep_fn=lambda s: None
+    )
+    assert cost == 0.0
+    assert client.calls == 5
+
+
+_SAMPLE_ROWS = [
+    {"prompt_id": "p1", "system": "fleet", "score": 8.0, "latency_s": 2.1, "cost_usd": 0.0},
+    {"prompt_id": "p1", "system": "sonnet", "score": 9.0, "latency_s": 1.5, "cost_usd": 0.01},
+    {"prompt_id": "p2", "system": "fleet", "score": 7.0, "latency_s": 2.5, "cost_usd": 0.0},
+    {"prompt_id": "p2", "system": "sonnet", "score": 8.5, "latency_s": 1.7, "cost_usd": 0.012},
+]
+
+
+def test_format_markdown_table_includes_all_rows_and_aggregate():
+    table = format_markdown_table(_SAMPLE_ROWS)
+    assert "p1" in table and "p2" in table
+    assert "fleet" in table and "sonnet" in table
+    assert "Aggregate" in table
+
+
+def test_write_json_report_writes_rows_and_aggregate(tmp_path):
+    out_path = tmp_path / "report.json"
+    write_json_report(_SAMPLE_ROWS, out_path)
+    data = json_module.loads(out_path.read_text())
+    assert data["rows"] == _SAMPLE_ROWS
+    assert "fleet" in data["aggregate"]
+    assert data["aggregate"]["fleet"]["mean_score"] == 7.5
+    assert data["aggregate"]["fleet"]["total_cost_usd"] == 0.0
