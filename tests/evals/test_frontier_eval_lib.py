@@ -46,3 +46,39 @@ def test_build_judge_prompt_includes_task_and_all_labeled_responses():
     assert "Response A" in prompt
     assert "Response B" in prompt
     assert "JSON" in prompt
+
+
+import pytest
+
+from .frontier_eval_lib import parse_judge_response
+
+
+def test_parse_judge_response_extracts_scores_and_reasoning():
+    raw = '{"A": {"score": 8, "reasoning": "Correct and clean."}, "B": {"score": 3.5, "reasoning": "Buggy."}}'
+    result = parse_judge_response(raw, ["A", "B"])
+    assert result["A"]["score"] == 8.0
+    assert result["A"]["reasoning"] == "Correct and clean."
+    assert result["B"]["score"] == 3.5
+
+
+def test_parse_judge_response_handles_surrounding_prose():
+    raw = 'Here is my evaluation:\n{"A": {"score": 7, "reasoning": "ok"}}\nThanks.'
+    result = parse_judge_response(raw, ["A"])
+    assert result["A"]["score"] == 7.0
+
+
+def test_parse_judge_response_raises_on_missing_label():
+    raw = '{"A": {"score": 7, "reasoning": "ok"}}'
+    with pytest.raises(ValueError):
+        parse_judge_response(raw, ["A", "B"])
+
+
+def test_parse_judge_response_raises_on_out_of_range_score():
+    raw = '{"A": {"score": 15, "reasoning": "ok"}}'
+    with pytest.raises(ValueError):
+        parse_judge_response(raw, ["A"])
+
+
+def test_parse_judge_response_raises_on_unparseable_text():
+    with pytest.raises(ValueError):
+        parse_judge_response("not json at all", ["A"])

@@ -6,7 +6,9 @@ the live orchestration that calls the fleet gateway and OpenRouter.
 
 from __future__ import annotations
 
+import json
 import random
+import re
 
 PROMPTS: list[dict] = [
     {
@@ -166,3 +168,28 @@ def build_judge_prompt(task: str, labeled_responses: dict[str, str]) -> str:
         ) + "}\n"
         f"Labels to score: {labels_list}"
     )
+
+
+def parse_judge_response(raw_text: str, expected_labels: list[str]) -> dict[str, dict]:
+    """Extract {label: {"score": float, "reasoning": str}} from the judge's raw text.
+
+    Tolerates surrounding prose by extracting the first {...} block.
+    """
+    match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+    if not match:
+        raise ValueError(f"No JSON object found in judge response: {raw_text!r}")
+    try:
+        data = json.loads(match.group(0))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Judge response is not valid JSON: {raw_text!r}") from exc
+
+    result: dict[str, dict] = {}
+    for label in expected_labels:
+        if label not in data:
+            raise ValueError(f"Judge response missing label {label!r}: {data!r}")
+        entry = data[label]
+        score = float(entry["score"])
+        if not (0 <= score <= 10):
+            raise ValueError(f"Judge score for {label!r} out of range [0,10]: {score}")
+        result[label] = {"score": score, "reasoning": str(entry.get("reasoning", ""))}
+    return result
