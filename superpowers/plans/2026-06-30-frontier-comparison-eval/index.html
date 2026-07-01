@@ -1,0 +1,1480 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Run Claude Code-style subagents across your local model fleet.">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Fleet vs. Frontier Coding Eval Implementation Plan - subagent-fleet</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#fleet-vs-frontier-coding-eval-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="subagent-fleet" class="md-header__button md-logo" aria-label="subagent-fleet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            subagent-fleet
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Fleet vs. Frontier Coding Eval Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/adityak74/subagent-fleet" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    adityak74/subagent-fleet
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../spec/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture (SPEC)
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../roadmap/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Future Roadmap
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../LICENSE/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="subagent-fleet" class="md-nav__button md-logo" aria-label="subagent-fleet" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    subagent-fleet
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/adityak74/subagent-fleet" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    adityak74/subagent-fleet
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../spec/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture (SPEC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../LICENSE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#global-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global Constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Global Constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-prompt-dataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Prompt dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-label-randomization-judge-prompt-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Label randomization + judge prompt builder
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-3-judge-response-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Judge response parser
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-openrouter-cost-retrieval-helper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: OpenRouter cost-retrieval helper
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-5-report-formatting-json-markdown-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Report formatting (JSON + markdown table)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-6-live-orchestration-test-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: Live orchestration test file
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-plan-note-out-of-scope-for-this-plan-left-for-the-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-plan note (out of scope for this plan, left for the user)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="fleet-vs-frontier-coding-eval-implementation-plan">Fleet vs. Frontier Coding Eval Implementation Plan</h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Build a live eval that compares the local subagent fleet against Sonnet 5 / GPT-4o-mini (via OpenRouter) on 8 coding tasks, scored by an LLM judge, producing a report showing near-frontier quality at near-zero cost.</p>
+<p><strong>Architecture:</strong> Pure logic (prompt dataset, judge-prompt building, judge-response parsing, cost-retrieval retry logic, report formatting) lives in <code>tests/evals/frontier_eval_lib.py</code> and is unit-tested with mocked HTTP (<code>tests/evals/test_frontier_eval_lib.py</code>, runs in the normal suite). Live network orchestration (calling the fleet gateway, OpenRouter frontier models, and the OpenRouter judge) lives in <code>tests/evals/test_frontier_comparison_live.py</code>, gated behind <code>--run-live</code> + a live <code>OPENROUTER_API_KEY</code>, following the existing <code>tests/evals/conftest.py</code> pattern.</p>
+<p><strong>Tech Stack:</strong> Python, pytest, httpx (existing project dependency).</p>
+<h2 id="global-constraints">Global Constraints</h2>
+<ul>
+<li>Follow existing eval file conventions: <code>tests/evals/*.py</code>, <code>@pytest.mark.live</code> on live tests, skip via <code>conftest.py</code>'s <code>pytest_runtest_setup</code> when <code>--run-live</code> is absent.</li>
+<li>No new third-party dependencies — use <code>httpx</code> (already used throughout <code>tests/evals/</code>).</li>
+<li>Fleet cost is a flat <code>$0.00</code> per response (documented assumption).</li>
+<li>Frontier model ids are overridable via env vars <code>FRONTIER_MODEL_SONNET</code> (default <code>anthropic/claude-sonnet-5</code>) and <code>FRONTIER_MODEL_GPT4OMINI</code> (default <code>openai/gpt-4o-mini</code>); judge model id is <code>JUDGE_MODEL</code> env var (default same as <code>FRONTIER_MODEL_SONNET</code>).</li>
+<li>Judge score scale: 0-10. Per-prompt pass bar: <code>fleet_score &gt;= max(sonnet_score, gpt4o_mini_score) * 0.8</code>. Aggregate pass bar: fleet mean across all 8 prompts &gt;= 80% of best frontier mean.</li>
+</ul>
+<hr />
+<h3 id="task-1-prompt-dataset">Task 1: Prompt dataset</h3>
+<p><strong>Files:</strong>
+- Create: <code>tests/evals/frontier_eval_lib.py</code>
+- Test: <code>tests/evals/test_frontier_eval_lib.py</code></p>
+<p><strong>Interfaces:</strong>
+- Produces: <code>PROMPTS: list[dict]</code> — each dict has keys <code>id: str</code>, <code>title: str</code>, <code>task: str</code>. Consumed by later tasks and by the live test file.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/evals/test_frontier_eval_lib.py</span>
+<span class="sd">&quot;&quot;&quot;Unit tests for frontier_eval_lib.py (no network calls).&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frontier_eval_lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROMPTS</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_prompts_dataset_has_eight_entries</span><span class="p">():</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">PROMPTS</span><span class="p">)</span> <span class="o">==</span> <span class="mi">8</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_prompts_dataset_ids_are_unique</span><span class="p">():</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PROMPTS</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_prompts_dataset_entries_have_required_fields</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PROMPTS</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">20</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v</code>
+Expected: FAIL (ModuleNotFoundError / ImportError — <code>frontier_eval_lib</code> doesn't exist yet)</p>
+<ul>
+<li>[ ] <strong>Step 3: Write the implementation</strong></li>
+</ul>
+<p>Create <code>tests/evals/frontier_eval_lib.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;Pure-logic helpers for the fleet-vs-frontier coding eval.</span>
+
+<span class="sd">No network I/O in this module — see test_frontier_comparison_live.py for</span>
+<span class="sd">the live orchestration that calls the fleet gateway and OpenRouter.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="n">PROMPTS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;binary_search_off_by_one&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Fix off-by-one bug in binary search&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;This binary search has an off-by-one bug that makes it miss the &quot;</span>
+            <span class="s2">&quot;last element of the array. Find and fix the bug. Return only the &quot;</span>
+            <span class="s2">&quot;corrected Python code.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```python</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;def binary_search(arr, target):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    lo, hi = 0, len(arr) - 1</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    while lo &lt; hi:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        mid = (lo + hi) // 2</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        if arr[mid] == target:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            return mid</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        elif arr[mid] &lt; target:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            lo = mid + 1</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        else:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            hi = mid - 1</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    return -1</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;lru_cache&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Implement an LRU cache&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;Implement a Python class LRUCache(capacity: int) with O(1) get(key) &quot;</span>
+            <span class="s2">&quot;and put(key, value) methods. get returns -1 if the key is missing. &quot;</span>
+            <span class="s2">&quot;When capacity is exceeded, evict the least-recently-used entry. &quot;</span>
+            <span class="s2">&quot;Return only the Python code.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;refactor_nested_ifs&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Refactor nested ifs into early returns&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;Refactor this function to use early returns instead of nested ifs, &quot;</span>
+            <span class="s2">&quot;preserving its exact behavior. Return only the refactored Python code.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```python</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;def classify(age, has_license, has_car):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    if age &gt;= 18:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        if has_license:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            if has_car:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;                return &#39;can drive own car&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            else:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;                return &#39;can drive, no car&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        else:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;            return &#39;needs license&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    else:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        return &#39;too young&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;pytest_unit_tests&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Write pytest unit tests with edge cases&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;Write pytest unit tests (including edge cases like empty input and &quot;</span>
+            <span class="s2">&quot;negative numbers) for this function. Return only the test code.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```python</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;def clamp(value, lo, hi):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    return max(lo, min(value, hi))</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;race_condition_fix&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Diagnose and fix a race condition&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;This counter class has a race condition when incremented from &quot;</span>
+            <span class="s2">&quot;multiple threads. Diagnose the bug and return corrected Python &quot;</span>
+            <span class="s2">&quot;code that is thread-safe.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```python</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;class Counter:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    def __init__(self):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        self.value = 0</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    def increment(self):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        self.value = self.value + 1</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;token_bucket_rate_limiter&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Implement a token-bucket rate limiter&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;Implement a Python class TokenBucket(rate: float, capacity: int) &quot;</span>
+            <span class="s2">&quot;with a method allow() -&gt; bool that returns True if a request is &quot;</span>
+            <span class="s2">&quot;allowed under the token-bucket algorithm (refilling `rate` tokens &quot;</span>
+            <span class="s2">&quot;per second, capped at `capacity`), False otherwise. Return only &quot;</span>
+            <span class="s2">&quot;the Python code.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;n_plus_1_to_join&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Rewrite N+1 query pattern into a JOIN&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;This SQLAlchemy code has an N+1 query problem: it issues one query &quot;</span>
+            <span class="s2">&quot;per author to fetch their books. Rewrite it to use a single query &quot;</span>
+            <span class="s2">&quot;with a JOIN (or eager loading). Return only the corrected Python code.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```python</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;authors = session.query(Author).all()</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;for author in authors:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    books = session.query(Book).filter(Book.author_id == author.id).all()</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    print(author.name, [b.title for b in books])</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;```&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;fastapi_endpoint&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Implement a FastAPI endpoint with validation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;task&quot;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="s2">&quot;Implement a FastAPI POST endpoint `/users` that accepts JSON body &quot;</span>
+            <span class="s2">&quot;{name: str, email: str, age: int}, validates that age &gt;= 0 and &quot;</span>
+            <span class="s2">&quot;email contains &#39;@&#39; (return HTTP 422 if invalid), and returns the &quot;</span>
+            <span class="s2">&quot;created user with a generated integer id. Return only the Python code.&quot;</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">]</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v</code>
+Expected: PASS (3 passed)</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/evals/frontier_eval_lib.py<span class="w"> </span>tests/evals/test_frontier_eval_lib.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test: add coding-task prompt dataset for frontier comparison eval&quot;</span>
+</code></pre></div>
+<hr />
+<h3 id="task-2-label-randomization-judge-prompt-builder">Task 2: Label randomization + judge prompt builder</h3>
+<p><strong>Files:</strong>
+- Modify: <code>tests/evals/frontier_eval_lib.py</code>
+- Modify: <code>tests/evals/test_frontier_eval_lib.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: nothing new.
+- Produces:
+  - <code>assign_labels(names: list[str], rng: random.Random) -&gt; dict[str, str]</code> — maps each name (e.g. <code>"fleet"</code>, <code>"sonnet"</code>, <code>"gpt4o_mini"</code>) to a shuffled single-letter label (<code>"A"</code>, <code>"B"</code>, <code>"C"</code>). Consumed by Task 6.
+  - <code>build_judge_prompt(task: str, labeled_responses: dict[str, str]) -&gt; str</code> — <code>labeled_responses</code> maps label (<code>"A"</code>/<code>"B"</code>/<code>"C"</code>) to response text. Returns the full judge rubric prompt string. Consumed by Task 6.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># append to tests/evals/test_frontier_eval_lib.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frontier_eval_lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">assign_labels</span><span class="p">,</span> <span class="n">build_judge_prompt</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_assign_labels_maps_every_name_to_unique_label</span><span class="p">():</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">assign_labels</span><span class="p">([</span><span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">],</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">}</span>
+    <span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_assign_labels_is_deterministic_for_same_seed</span><span class="p">():</span>
+    <span class="n">labels1</span> <span class="o">=</span> <span class="n">assign_labels</span><span class="p">([</span><span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">],</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">labels2</span> <span class="o">=</span> <span class="n">assign_labels</span><span class="p">([</span><span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">],</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">labels1</span> <span class="o">==</span> <span class="n">labels2</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_build_judge_prompt_includes_task_and_all_labeled_responses</span><span class="p">():</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="n">build_judge_prompt</span><span class="p">(</span>
+        <span class="s2">&quot;Write a function that adds two numbers.&quot;</span><span class="p">,</span>
+        <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;def add(a, b): return a + b&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="s2">&quot;def add(a,b):</span><span class="se">\n</span><span class="s2">    return a-b&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;Write a function that adds two numbers.&quot;</span> <span class="ow">in</span> <span class="n">prompt</span>
+    <span class="k">assert</span> <span class="s2">&quot;def add(a, b): return a + b&quot;</span> <span class="ow">in</span> <span class="n">prompt</span>
+    <span class="k">assert</span> <span class="s2">&quot;def add(a,b):</span><span class="se">\n</span><span class="s2">    return a-b&quot;</span> <span class="ow">in</span> <span class="n">prompt</span>
+    <span class="k">assert</span> <span class="s2">&quot;Response A&quot;</span> <span class="ow">in</span> <span class="n">prompt</span>
+    <span class="k">assert</span> <span class="s2">&quot;Response B&quot;</span> <span class="ow">in</span> <span class="n">prompt</span>
+    <span class="k">assert</span> <span class="s2">&quot;JSON&quot;</span> <span class="ow">in</span> <span class="n">prompt</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v -k "assign_labels or build_judge_prompt"</code>
+Expected: FAIL (ImportError — names don't exist yet)</p>
+<ul>
+<li>[ ] <strong>Step 3: Write the implementation</strong></li>
+</ul>
+<p>Append to <code>tests/evals/frontier_eval_lib.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">assign_labels</span><span class="p">(</span><span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">rng</span><span class="p">:</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shuffle names onto letter labels A, B, C... to avoid judge position bias.&quot;&quot;&quot;</span>
+    <span class="n">letters</span> <span class="o">=</span> <span class="p">[</span><span class="nb">chr</span><span class="p">(</span><span class="nb">ord</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))]</span>
+    <span class="n">shuffled_letters</span> <span class="o">=</span> <span class="n">letters</span><span class="p">[:]</span>
+    <span class="n">rng</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">shuffled_letters</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">shuffled_letters</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_judge_prompt</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">labeled_responses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the rubric prompt sent to the judge model.</span>
+
+<span class="sd">    labeled_responses maps a letter label (&quot;A&quot;, &quot;B&quot;, ...) to that</span>
+<span class="sd">    response&#39;s text. Labels are pre-shuffled by assign_labels so the judge</span>
+<span class="sd">    never learns which system produced which response.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">responses_block</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Response </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">:</span><span class="se">\n</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labeled_responses</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="p">)</span>
+    <span class="n">labels_list</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">l</span><span class="si">}</span><span class="s1">&quot;&#39;</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labeled_responses</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="s2">&quot;You are grading responses to a coding task. Score each response &quot;</span>
+        <span class="s2">&quot;0-10 on:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;- Correctness (does it work / handle edge cases) — weighted heaviest</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;- Code quality (readability, idiomaticity)</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;- Completeness (does it fully address the ask)</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Task:</span><span class="se">\n</span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">responses_block</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Return ONLY a JSON object mapping each label to its score and a &quot;</span>
+        <span class="s2">&quot;one-sentence reasoning, in this exact shape (no other text):</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">l</span><span class="si">}</span><span class="s1">&quot;: </span><span class="se">{{</span><span class="s1">&quot;score&quot;: &lt;0-10 number&gt;, &quot;reasoning&quot;: &quot;&lt;one sentence&gt;&quot;</span><span class="se">}}</span><span class="s1">&#39;</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">labeled_responses</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Labels to score: </span><span class="si">{</span><span class="n">labels_list</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v</code>
+Expected: PASS (all tests pass)</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/evals/frontier_eval_lib.py<span class="w"> </span>tests/evals/test_frontier_eval_lib.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add label randomization and judge prompt builder&quot;</span>
+</code></pre></div>
+<hr />
+<h3 id="task-3-judge-response-parser">Task 3: Judge response parser</h3>
+<p><strong>Files:</strong>
+- Modify: <code>tests/evals/frontier_eval_lib.py</code>
+- Modify: <code>tests/evals/test_frontier_eval_lib.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: nothing new.
+- Produces: <code>parse_judge_response(raw_text: str, expected_labels: list[str]) -&gt; dict[str, dict]</code> — returns <code>{label: {"score": float, "reasoning": str}}</code> for each expected label. Raises <code>ValueError</code> if a label is missing or the score isn't a number in [0, 10]. Consumed by Task 6.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># append to tests/evals/test_frontier_eval_lib.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frontier_eval_lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_judge_response</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parse_judge_response_extracts_scores_and_reasoning</span><span class="p">():</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39;{&quot;A&quot;: {&quot;score&quot;: 8, &quot;reasoning&quot;: &quot;Correct and clean.&quot;}, &quot;B&quot;: {&quot;score&quot;: 3.5, &quot;reasoning&quot;: &quot;Buggy.&quot;}}&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">parse_judge_response</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">][</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">8.0</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">][</span><span class="s2">&quot;reasoning&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Correct and clean.&quot;</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">][</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">3.5</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parse_judge_response_handles_surrounding_prose</span><span class="p">():</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39;Here is my evaluation:</span><span class="se">\n</span><span class="s1">{&quot;A&quot;: {&quot;score&quot;: 7, &quot;reasoning&quot;: &quot;ok&quot;}}</span><span class="se">\n</span><span class="s1">Thanks.&#39;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">parse_judge_response</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">][</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">7.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parse_judge_response_raises_on_missing_label</span><span class="p">():</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39;{&quot;A&quot;: {&quot;score&quot;: 7, &quot;reasoning&quot;: &quot;ok&quot;}}&#39;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">parse_judge_response</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parse_judge_response_raises_on_out_of_range_score</span><span class="p">():</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="s1">&#39;{&quot;A&quot;: {&quot;score&quot;: 15, &quot;reasoning&quot;: &quot;ok&quot;}}&#39;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">parse_judge_response</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_parse_judge_response_raises_on_unparseable_text</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">parse_judge_response</span><span class="p">(</span><span class="s2">&quot;not json at all&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">])</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v -k parse_judge_response</code>
+Expected: FAIL (ImportError)</p>
+<ul>
+<li>[ ] <strong>Step 3: Write the implementation</strong></li>
+</ul>
+<p>Append to <code>tests/evals/frontier_eval_lib.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_judge_response</span><span class="p">(</span><span class="n">raw_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expected_labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract {label: {&quot;score&quot;: float, &quot;reasoning&quot;: str}} from the judge&#39;s raw text.</span>
+
+<span class="sd">    Tolerates surrounding prose by extracting the first {...} block.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\{.*\}&quot;</span><span class="p">,</span> <span class="n">raw_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No JSON object found in judge response: </span><span class="si">{</span><span class="n">raw_text</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Judge response is not valid JSON: </span><span class="si">{</span><span class="n">raw_text</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+
+    <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">expected_labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Judge response missing label </span><span class="si">{</span><span class="n">label</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">data</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">score</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Judge score for </span><span class="si">{</span><span class="n">label</span><span class="si">!r}</span><span class="s2"> out of range [0,10]: </span><span class="si">{</span><span class="n">score</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span> <span class="s2">&quot;reasoning&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reasoning&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))}</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v</code>
+Expected: PASS (all tests pass)</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/evals/frontier_eval_lib.py<span class="w"> </span>tests/evals/test_frontier_eval_lib.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add judge response parser with validation&quot;</span>
+</code></pre></div>
+<hr />
+<h3 id="task-4-openrouter-cost-retrieval-helper">Task 4: OpenRouter cost-retrieval helper</h3>
+<p><strong>Files:</strong>
+- Modify: <code>tests/evals/frontier_eval_lib.py</code>
+- Modify: <code>tests/evals/test_frontier_eval_lib.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>httpx.Client</code>-like object (duck-typed, <code>.get(url, headers=...)</code> returning an object with <code>.status_code</code> and <code>.json()</code>).
+- Produces: <code>fetch_generation_cost(client, generation_id: str, api_key: str, *, max_attempts: int = 5, sleep_fn=time.sleep) -&gt; float</code> — polls <code>https://openrouter.ai/api/v1/generation?id=&lt;id&gt;</code> until <code>total_cost</code> is present, returns it as float; returns <code>0.0</code> if it never becomes available after <code>max_attempts</code>. Consumed by Task 6.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># append to tests/evals/test_frontier_eval_lib.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frontier_eval_lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch_generation_cost</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_FakeResponse</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span> <span class="o">=</span> <span class="n">payload</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_payload</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_FakeClient</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_responses</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calls</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_responses</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_fetch_generation_cost_returns_cost_when_available</span><span class="p">():</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">_FakeClient</span><span class="p">([</span>
+        <span class="n">_FakeResponse</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;total_cost&quot;</span><span class="p">:</span> <span class="mf">0.0042</span><span class="p">}}),</span>
+    <span class="p">])</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">fetch_generation_cost</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="s2">&quot;gen-123&quot;</span><span class="p">,</span> <span class="s2">&quot;fake-key&quot;</span><span class="p">,</span> <span class="n">sleep_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">cost</span> <span class="o">==</span> <span class="mf">0.0042</span>
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">calls</span> <span class="o">==</span> <span class="mi">1</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_fetch_generation_cost_retries_until_cost_present</span><span class="p">():</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">_FakeClient</span><span class="p">([</span>
+        <span class="n">_FakeResponse</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="p">{}),</span>
+        <span class="n">_FakeResponse</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;total_cost&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">}}),</span>
+    <span class="p">])</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">fetch_generation_cost</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="s2">&quot;gen-123&quot;</span><span class="p">,</span> <span class="s2">&quot;fake-key&quot;</span><span class="p">,</span> <span class="n">sleep_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">cost</span> <span class="o">==</span> <span class="mf">0.001</span>
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">calls</span> <span class="o">==</span> <span class="mi">2</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_fetch_generation_cost_gives_up_after_max_attempts</span><span class="p">():</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">_FakeClient</span><span class="p">([</span><span class="n">_FakeResponse</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="p">{})</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)])</span>
+    <span class="n">cost</span> <span class="o">=</span> <span class="n">fetch_generation_cost</span><span class="p">(</span>
+        <span class="n">client</span><span class="p">,</span> <span class="s2">&quot;gen-123&quot;</span><span class="p">,</span> <span class="s2">&quot;fake-key&quot;</span><span class="p">,</span> <span class="n">max_attempts</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sleep_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">cost</span> <span class="o">==</span> <span class="mf">0.0</span>
+    <span class="k">assert</span> <span class="n">client</span><span class="o">.</span><span class="n">calls</span> <span class="o">==</span> <span class="mi">5</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v -k fetch_generation_cost</code>
+Expected: FAIL (ImportError)</p>
+<ul>
+<li>[ ] <strong>Step 3: Write the implementation</strong></li>
+</ul>
+<p>Append to <code>tests/evals/frontier_eval_lib.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_generation_cost</span><span class="p">(</span>
+    <span class="n">client</span><span class="p">,</span>
+    <span class="n">generation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">max_attempts</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">sleep_fn</span><span class="o">=</span><span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Poll OpenRouter&#39;s generation stats endpoint for the real USD cost.</span>
+
+<span class="sd">    Cost data can lag slightly behind the completion, so this retries with</span>
+<span class="sd">    a short delay between attempts. Returns 0.0 if cost is never available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://openrouter.ai/api/v1/generation?id=</span><span class="si">{</span><span class="n">generation_id</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">api_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_attempts</span><span class="p">):</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="s2">&quot;total_cost&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_cost&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">attempt</span> <span class="o">&lt;</span> <span class="n">max_attempts</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">sleep_fn</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mf">0.0</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v</code>
+Expected: PASS (all tests pass)</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/evals/frontier_eval_lib.py<span class="w"> </span>tests/evals/test_frontier_eval_lib.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add OpenRouter generation cost polling helper&quot;</span>
+</code></pre></div>
+<hr />
+<h3 id="task-5-report-formatting-json-markdown-table">Task 5: Report formatting (JSON + markdown table)</h3>
+<p><strong>Files:</strong>
+- Modify: <code>tests/evals/frontier_eval_lib.py</code>
+- Modify: <code>tests/evals/test_frontier_eval_lib.py</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: nothing new.
+- Produces:
+  - <code>ScoreRow = dict</code> shape: <code>{"prompt_id": str, "system": str, "score": float, "latency_s": float, "cost_usd": float}</code>.
+  - <code>format_markdown_table(rows: list[ScoreRow]) -&gt; str</code> — one row per <code>(prompt_id, system)</code>, plus an aggregate section per system (mean score, mean latency, total cost).
+  - <code>write_json_report(rows: list[ScoreRow], path: pathlib.Path) -&gt; None</code> — writes <code>{"rows": rows, "aggregate": {...}}</code> as JSON.
+  Consumed by Task 6.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># append to tests/evals/test_frontier_eval_lib.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">json_module</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frontier_eval_lib</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_markdown_table</span><span class="p">,</span> <span class="n">write_json_report</span>
+
+<span class="n">_SAMPLE_ROWS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;prompt_id&quot;</span><span class="p">:</span> <span class="s2">&quot;p1&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">8.0</span><span class="p">,</span> <span class="s2">&quot;latency_s&quot;</span><span class="p">:</span> <span class="mf">2.1</span><span class="p">,</span> <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;prompt_id&quot;</span><span class="p">:</span> <span class="s2">&quot;p1&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">9.0</span><span class="p">,</span> <span class="s2">&quot;latency_s&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;prompt_id&quot;</span><span class="p">:</span> <span class="s2">&quot;p2&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">7.0</span><span class="p">,</span> <span class="s2">&quot;latency_s&quot;</span><span class="p">:</span> <span class="mf">2.5</span><span class="p">,</span> <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;prompt_id&quot;</span><span class="p">:</span> <span class="s2">&quot;p2&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">8.5</span><span class="p">,</span> <span class="s2">&quot;latency_s&quot;</span><span class="p">:</span> <span class="mf">1.7</span><span class="p">,</span> <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="mf">0.012</span><span class="p">},</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_format_markdown_table_includes_all_rows_and_aggregate</span><span class="p">():</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">format_markdown_table</span><span class="p">(</span><span class="n">_SAMPLE_ROWS</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;p1&quot;</span> <span class="ow">in</span> <span class="n">table</span> <span class="ow">and</span> <span class="s2">&quot;p2&quot;</span> <span class="ow">in</span> <span class="n">table</span>
+    <span class="k">assert</span> <span class="s2">&quot;fleet&quot;</span> <span class="ow">in</span> <span class="n">table</span> <span class="ow">and</span> <span class="s2">&quot;sonnet&quot;</span> <span class="ow">in</span> <span class="n">table</span>
+    <span class="k">assert</span> <span class="s2">&quot;Aggregate&quot;</span> <span class="ow">in</span> <span class="n">table</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_write_json_report_writes_rows_and_aggregate</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">):</span>
+    <span class="n">out_path</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s2">&quot;report.json&quot;</span>
+    <span class="n">write_json_report</span><span class="p">(</span><span class="n">_SAMPLE_ROWS</span><span class="p">,</span> <span class="n">out_path</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json_module</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">out_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;rows&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">_SAMPLE_ROWS</span>
+    <span class="k">assert</span> <span class="s2">&quot;fleet&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">][</span><span class="s2">&quot;fleet&quot;</span><span class="p">][</span><span class="s2">&quot;mean_score&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">7.5</span>
+    <span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;aggregate&quot;</span><span class="p">][</span><span class="s2">&quot;fleet&quot;</span><span class="p">][</span><span class="s2">&quot;total_cost_usd&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v -k "format_markdown_table or write_json_report"</code>
+Expected: FAIL (ImportError)</p>
+<ul>
+<li>[ ] <strong>Step 3: Write the implementation</strong></li>
+</ul>
+<p>Append to <code>tests/evals/frontier_eval_lib.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_aggregate_by_system</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="n">by_system</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">by_system</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;system&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="n">aggregate</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">system</span><span class="p">,</span> <span class="n">system_rows</span> <span class="ow">in</span> <span class="n">by_system</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">aggregate</span><span class="p">[</span><span class="n">system</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;mean_score&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">system_rows</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">system_rows</span><span class="p">),</span>
+            <span class="s2">&quot;mean_latency_s&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;latency_s&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">system_rows</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">system_rows</span><span class="p">),</span>
+            <span class="s2">&quot;total_cost_usd&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;cost_usd&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">system_rows</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="n">aggregate</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">format_markdown_table</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;| Prompt | System | Score | Latency (s) | Cost (USD) |&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;|---|---|---|---|---|&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;| </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;prompt_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;system&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> | &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;latency_s&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> | $</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;cost_usd&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> |&quot;</span>
+        <span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;**Aggregate**&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;| System | Mean Score | Mean Latency (s) | Total Cost (USD) |&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;|---|---|---|---|&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">system</span><span class="p">,</span> <span class="n">agg</span> <span class="ow">in</span> <span class="n">_aggregate_by_system</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;| </span><span class="si">{</span><span class="n">system</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">&#39;mean_score&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">&#39;mean_latency_s&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> | &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;$</span><span class="si">{</span><span class="n">agg</span><span class="p">[</span><span class="s1">&#39;total_cost_usd&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> |&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">write_json_report</span><span class="p">(</span><span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="n">rows</span><span class="p">,</span> <span class="s2">&quot;aggregate&quot;</span><span class="p">:</span> <span class="n">_aggregate_by_system</span><span class="p">(</span><span class="n">rows</span><span class="p">)}</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_eval_lib.py -v</code>
+Expected: PASS (all tests pass)</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/evals/frontier_eval_lib.py<span class="w"> </span>tests/evals/test_frontier_eval_lib.py
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add markdown/JSON report formatting for frontier eval&quot;</span>
+</code></pre></div>
+<hr />
+<h3 id="task-6-live-orchestration-test-file">Task 6: Live orchestration test file</h3>
+<p><strong>Files:</strong>
+- Create: <code>tests/evals/test_frontier_comparison_live.py</code>
+- Modify: <code>tests/evals/conftest.py</code>
+- Modify: <code>.gitignore</code></p>
+<p><strong>Interfaces:</strong>
+- Consumes: <code>PROMPTS</code>, <code>assign_labels</code>, <code>build_judge_prompt</code>, <code>parse_judge_response</code>, <code>fetch_generation_cost</code>, <code>format_markdown_table</code>, <code>write_json_report</code> from <code>tests/evals/frontier_eval_lib.py</code> (Tasks 1-5). Also consumes <code>live_fleet</code> fixture from <code>conftest.py</code> (existing) for gateway host/port.
+- Produces: pytest tests <code>test_frontier_comparison_prompt[&lt;prompt_id&gt;]</code> (parametrized) and <code>test_frontier_comparison_aggregate_report</code>, plus <code>tests/evals/reports/frontier_comparison.json</code> as a side effect when run live.</p>
+<ul>
+<li>[ ] <strong>Step 1: Add an <code>openrouter_api_key</code> skip fixture to conftest.py</strong></li>
+</ul>
+<p>In <code>tests/evals/conftest.py</code>, add near the other fixtures:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;session&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">openrouter_api_key</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OPENROUTER_API_KEY&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="p">:</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="s2">&quot;OPENROUTER_API_KEY not set — skipping frontier comparison eval&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">key</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Add reports directory to .gitignore</strong></li>
+</ul>
+<p>Append to <code>.gitignore</code>:</p>
+<div class="highlight"><pre><span></span><code>tests/evals/reports/
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Write the live test file</strong></li>
+</ul>
+<p>Create <code>tests/evals/test_frontier_comparison_live.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;EVALS - Fleet vs. Frontier Coding Comparison (live, opt-in).</span>
+
+<span class="sd">Compares the local subagent fleet (via the LiteLLM gateway) against</span>
+<span class="sd">Claude Sonnet 5 and GPT-4o-mini (via OpenRouter) on 8 coding tasks,</span>
+<span class="sd">scored blind by an LLM judge (Sonnet 5 via OpenRouter).</span>
+
+<span class="sd">Requires: --run-live AND OPENROUTER_API_KEY set. Also requires the live</span>
+<span class="sd">3-node fleet + LiteLLM gateway to be running (see fleet.yaml).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">httpx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.frontier_eval_lib</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PROMPTS</span><span class="p">,</span>
+    <span class="n">assign_labels</span><span class="p">,</span>
+    <span class="n">build_judge_prompt</span><span class="p">,</span>
+    <span class="n">fetch_generation_cost</span><span class="p">,</span>
+    <span class="n">format_markdown_table</span><span class="p">,</span>
+    <span class="n">parse_judge_response</span><span class="p">,</span>
+    <span class="n">write_json_report</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">pytestmark</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">live</span>
+
+<span class="n">OPENROUTER_URL</span> <span class="o">=</span> <span class="s2">&quot;https://openrouter.ai/api/v1/chat/completions&quot;</span>
+<span class="n">FRONTIER_MODEL_SONNET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FRONTIER_MODEL_SONNET&quot;</span><span class="p">,</span> <span class="s2">&quot;anthropic/claude-sonnet-5&quot;</span><span class="p">)</span>
+<span class="n">FRONTIER_MODEL_GPT4OMINI</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FRONTIER_MODEL_GPT4OMINI&quot;</span><span class="p">,</span> <span class="s2">&quot;openai/gpt-4o-mini&quot;</span><span class="p">)</span>
+<span class="n">JUDGE_MODEL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;JUDGE_MODEL&quot;</span><span class="p">,</span> <span class="n">FRONTIER_MODEL_SONNET</span><span class="p">)</span>
+<span class="n">REPORT_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;reports&quot;</span> <span class="o">/</span> <span class="s2">&quot;frontier_comparison.json&quot;</span>
+
+<span class="n">_RESULTS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_call_openrouter</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="n">OPENROUTER_URL</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">api_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+        <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]},</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mf">120.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">latency</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">]</span>
+    <span class="n">generation_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">content</span><span class="p">,</span> <span class="n">latency</span><span class="p">,</span> <span class="n">generation_id</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_call_fleet</span><span class="p">(</span><span class="n">client</span><span class="p">:</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">,</span> <span class="n">gateway_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gateway_url</span><span class="si">}</span><span class="s2">/chat/completions&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;LITELLM_MASTER_KEY&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;sk-local-dev&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+        <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;claude-sonnet-local&quot;</span><span class="p">,</span> <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}]},</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">latency</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+    <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">content</span><span class="p">,</span> <span class="n">latency</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;session&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gateway_url</span><span class="p">(</span><span class="n">live_fleet</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">gw</span> <span class="o">=</span> <span class="n">live_fleet</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">][</span><span class="s2">&quot;gateway&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;http://</span><span class="si">{</span><span class="n">gw</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">gw</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">scope</span><span class="o">=</span><span class="s2">&quot;session&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">openrouter_client</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">client</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">parametrize</span><span class="p">(</span><span class="s2">&quot;prompt_entry&quot;</span><span class="p">,</span> <span class="n">PROMPTS</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">PROMPTS</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_frontier_comparison_prompt</span><span class="p">(</span>
+    <span class="n">prompt_entry</span><span class="p">,</span> <span class="n">gateway_url</span><span class="p">,</span> <span class="n">openrouter_client</span><span class="p">,</span> <span class="n">openrouter_api_key</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fleet response scores within 20% of the best frontier model, per prompt.&quot;&quot;&quot;</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">prompt_entry</span><span class="p">[</span><span class="s2">&quot;task&quot;</span><span class="p">]</span>
+
+    <span class="n">fleet_content</span><span class="p">,</span> <span class="n">fleet_latency</span> <span class="o">=</span> <span class="n">_call_fleet</span><span class="p">(</span><span class="n">openrouter_client</span><span class="p">,</span> <span class="n">gateway_url</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+    <span class="n">sonnet_content</span><span class="p">,</span> <span class="n">sonnet_latency</span><span class="p">,</span> <span class="n">sonnet_gen_id</span> <span class="o">=</span> <span class="n">_call_openrouter</span><span class="p">(</span>
+        <span class="n">openrouter_client</span><span class="p">,</span> <span class="n">FRONTIER_MODEL_SONNET</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">openrouter_api_key</span>
+    <span class="p">)</span>
+    <span class="n">gpt_content</span><span class="p">,</span> <span class="n">gpt_latency</span><span class="p">,</span> <span class="n">gpt_gen_id</span> <span class="o">=</span> <span class="n">_call_openrouter</span><span class="p">(</span>
+        <span class="n">openrouter_client</span><span class="p">,</span> <span class="n">FRONTIER_MODEL_GPT4OMINI</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="n">openrouter_api_key</span>
+    <span class="p">)</span>
+
+    <span class="n">sonnet_cost</span> <span class="o">=</span> <span class="n">fetch_generation_cost</span><span class="p">(</span><span class="n">openrouter_client</span><span class="p">,</span> <span class="n">sonnet_gen_id</span><span class="p">,</span> <span class="n">openrouter_api_key</span><span class="p">)</span>
+    <span class="n">gpt_cost</span> <span class="o">=</span> <span class="n">fetch_generation_cost</span><span class="p">(</span><span class="n">openrouter_client</span><span class="p">,</span> <span class="n">gpt_gen_id</span><span class="p">,</span> <span class="n">openrouter_api_key</span><span class="p">)</span>
+
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;fleet&quot;</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">assign_labels</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">prompt_entry</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">])</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">32</span><span class="p">)))</span>
+    <span class="n">contents</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;fleet&quot;</span><span class="p">:</span> <span class="n">fleet_content</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">:</span> <span class="n">sonnet_content</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">:</span> <span class="n">gpt_content</span><span class="p">}</span>
+    <span class="n">labeled_responses</span> <span class="o">=</span> <span class="p">{</span><span class="n">labels</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span> <span class="n">contents</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">}</span>
+
+    <span class="n">judge_prompt</span> <span class="o">=</span> <span class="n">build_judge_prompt</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">labeled_responses</span><span class="p">)</span>
+    <span class="n">judge_raw</span><span class="p">,</span> <span class="n">_judge_latency</span><span class="p">,</span> <span class="n">_judge_gen_id</span> <span class="o">=</span> <span class="n">_call_openrouter</span><span class="p">(</span>
+        <span class="n">openrouter_client</span><span class="p">,</span> <span class="n">JUDGE_MODEL</span><span class="p">,</span> <span class="n">judge_prompt</span><span class="p">,</span> <span class="n">openrouter_api_key</span>
+    <span class="p">)</span>
+    <span class="n">scores_by_label</span> <span class="o">=</span> <span class="n">parse_judge_response</span><span class="p">(</span><span class="n">judge_raw</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">labeled_responses</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="n">scores_by_name</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">scores_by_label</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">name</span><span class="p">]][</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">}</span>
+
+    <span class="n">latencies</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;fleet&quot;</span><span class="p">:</span> <span class="n">fleet_latency</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">:</span> <span class="n">sonnet_latency</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">:</span> <span class="n">gpt_latency</span><span class="p">}</span>
+    <span class="n">costs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;fleet&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;sonnet&quot;</span><span class="p">:</span> <span class="n">sonnet_cost</span><span class="p">,</span> <span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">:</span> <span class="n">gpt_cost</span><span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="n">_RESULTS</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;prompt_id&quot;</span><span class="p">:</span> <span class="n">prompt_entry</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;system&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="n">scores_by_name</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+            <span class="s2">&quot;latency_s&quot;</span><span class="p">:</span> <span class="n">latencies</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+            <span class="s2">&quot;cost_usd&quot;</span><span class="p">:</span> <span class="n">costs</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
+        <span class="p">})</span>
+
+    <span class="n">best_frontier</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">scores_by_name</span><span class="p">[</span><span class="s2">&quot;sonnet&quot;</span><span class="p">],</span> <span class="n">scores_by_name</span><span class="p">[</span><span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">scores_by_name</span><span class="p">[</span><span class="s2">&quot;fleet&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">best_frontier</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">prompt_entry</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">] fleet score </span><span class="si">{</span><span class="n">scores_by_name</span><span class="p">[</span><span class="s1">&#39;fleet&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> is below 80% &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;of best frontier score </span><span class="si">{</span><span class="n">best_frontier</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_frontier_comparison_aggregate_report</span><span class="p">(</span><span class="n">openrouter_api_key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregate: fleet&#39;s mean score is within 20% of the best frontier mean.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_RESULTS</span><span class="p">:</span>
+        <span class="n">pytest</span><span class="o">.</span><span class="n">skip</span><span class="p">(</span><span class="s2">&quot;no per-prompt results collected — run test_frontier_comparison_prompt first&quot;</span><span class="p">)</span>
+
+    <span class="n">write_json_report</span><span class="p">(</span><span class="n">_RESULTS</span><span class="p">,</span> <span class="n">REPORT_PATH</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">format_markdown_table</span><span class="p">(</span><span class="n">_RESULTS</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">table</span><span class="p">)</span>
+
+    <span class="n">by_system</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_RESULTS</span><span class="p">:</span>
+        <span class="n">by_system</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;system&quot;</span><span class="p">],</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">])</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="p">{</span><span class="n">system</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="k">for</span> <span class="n">system</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">by_system</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">best_frontier_mean</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="s2">&quot;sonnet&quot;</span><span class="p">],</span> <span class="n">means</span><span class="p">[</span><span class="s2">&quot;gpt4o_mini&quot;</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">means</span><span class="p">[</span><span class="s2">&quot;fleet&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">best_frontier_mean</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;fleet mean score </span><span class="si">{</span><span class="n">means</span><span class="p">[</span><span class="s1">&#39;fleet&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> is below 80% of best frontier &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;mean </span><span class="si">{</span><span class="n">best_frontier_mean</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Verify the file imports cleanly (no live network yet)</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -c "import tests.evals.test_frontier_comparison_live"</code>
+Expected: no output, exit code 0 (import succeeds; no network call happens at import time)</p>
+<ul>
+<li>[ ] <strong>Step 5: Verify it skips cleanly without --run-live and without a key</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/evals/test_frontier_comparison_live.py -v</code>
+Expected: all tests SKIPPED (no <code>--run-live</code> passed)</p>
+<ul>
+<li>[ ] <strong>Step 6: Verify the full unit suite still passes</strong></li>
+</ul>
+<p>Run: <code>cd /Users/adityakarnam/Projects/subagent-fleet &amp;&amp; python -m pytest tests/ -v --ignore=tests/evals/test_frontier_comparison_live.py -k "not live"</code>
+Expected: all existing tests PASS (no regressions), plus the new <code>test_frontier_eval_lib.py</code> tests pass</p>
+<ul>
+<li>[ ] <strong>Step 7: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>tests/evals/test_frontier_comparison_live.py<span class="w"> </span>tests/evals/conftest.py<span class="w"> </span>.gitignore
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add live fleet-vs-frontier coding comparison eval&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="post-plan-note-out-of-scope-for-this-plan-left-for-the-user">Post-plan note (out of scope for this plan, left for the user)</h2>
+<p>Once a real <code>OPENROUTER_API_KEY</code> is available, run:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">OPENROUTER_API_KEY</span><span class="o">=</span>&lt;key&gt;
+<span class="nb">export</span><span class="w"> </span><span class="nv">LITELLM_MASTER_KEY</span><span class="o">=</span>&lt;key&gt;<span class="w">  </span><span class="c1"># must match fleet.yaml&#39;s master_key_env target</span>
+litellm<span class="w"> </span>--config<span class="w"> </span>./litellm_config.yaml<span class="w"> </span><span class="p">&amp;</span><span class="w">  </span><span class="c1"># gateway must be running</span>
+<span class="nb">cd</span><span class="w"> </span>/Users/adityakarnam/Projects/subagent-fleet
+python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/evals/test_frontier_comparison_live.py<span class="w"> </span>--run-live<span class="w"> </span>-v<span class="w"> </span>-s
+</code></pre></div>
+<p>Confirm the actual OpenRouter model slugs for Sonnet 5 (<code>FRONTIER_MODEL_SONNET</code>) match
+what's live on OpenRouter at run time — override via env var if the default constant
+is stale. Paste the printed markdown table (or <code>tests/evals/reports/frontier_comparison.json</code>)
+into the README's "Verified With Evals" section if you want to publish the results.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

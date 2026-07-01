@@ -1,0 +1,189 @@
+{
+    "rows": [
+        {
+            "prompt_id": "binary_search_off_by_one",
+            "system": "fleet",
+            "score": 10.0,
+            "latency_s": 78.41533613204956,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "binary_search_off_by_one",
+            "system": "sonnet",
+            "score": 10.0,
+            "latency_s": 3.9490957260131836,
+            "cost_usd": 0.00225918
+        },
+        {
+            "prompt_id": "binary_search_off_by_one",
+            "system": "gpt4o_mini",
+            "score": 9.0,
+            "latency_s": 1.7732937335968018,
+            "cost_usd": 7.9596e-05
+        },
+        {
+            "prompt_id": "lru_cache",
+            "system": "fleet",
+            "score": 9.0,
+            "latency_s": 12.65021800994873,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "lru_cache",
+            "system": "sonnet",
+            "score": 7.0,
+            "latency_s": 5.220494031906128,
+            "cost_usd": 0.00546876
+        },
+        {
+            "prompt_id": "lru_cache",
+            "system": "gpt4o_mini",
+            "score": 8.0,
+            "latency_s": 6.144314765930176,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "refactor_nested_ifs",
+            "system": "fleet",
+            "score": 10.0,
+            "latency_s": 2.524350881576538,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "refactor_nested_ifs",
+            "system": "sonnet",
+            "score": 10.0,
+            "latency_s": 2.8530490398406982,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "refactor_nested_ifs",
+            "system": "gpt4o_mini",
+            "score": 10.0,
+            "latency_s": 1.1215877532958984,
+            "cost_usd": 5.1678e-05
+        },
+        {
+            "prompt_id": "pytest_unit_tests",
+            "system": "fleet",
+            "score": 4.0,
+            "latency_s": 19.243109941482544,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "pytest_unit_tests",
+            "system": "sonnet",
+            "score": 8.0,
+            "latency_s": 8.424636840820312,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "pytest_unit_tests",
+            "system": "gpt4o_mini",
+            "score": 5.0,
+            "latency_s": 9.014667987823486,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "race_condition_fix",
+            "system": "fleet",
+            "score": 9.0,
+            "latency_s": 11.448709964752197,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "race_condition_fix",
+            "system": "sonnet",
+            "score": 9.0,
+            "latency_s": 10.171154975891113,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "race_condition_fix",
+            "system": "gpt4o_mini",
+            "score": 9.0,
+            "latency_s": 3.4714250564575195,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "token_bucket_rate_limiter",
+            "system": "fleet",
+            "score": 8.0,
+            "latency_s": 6.227013826370239,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "token_bucket_rate_limiter",
+            "system": "sonnet",
+            "score": 9.0,
+            "latency_s": 3.933211088180542,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "token_bucket_rate_limiter",
+            "system": "gpt4o_mini",
+            "score": 8.0,
+            "latency_s": 2.7021970748901367,
+            "cost_usd": 9.9049e-05
+        },
+        {
+            "prompt_id": "n_plus_1_to_join",
+            "system": "fleet",
+            "score": 9.0,
+            "latency_s": 1.996354103088379,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "n_plus_1_to_join",
+            "system": "sonnet",
+            "score": 9.0,
+            "latency_s": 3.1071531772613525,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "n_plus_1_to_join",
+            "system": "gpt4o_mini",
+            "score": 7.0,
+            "latency_s": 1.1863470077514648,
+            "cost_usd": 3.9204e-05
+        },
+        {
+            "prompt_id": "fastapi_endpoint",
+            "system": "fleet",
+            "score": 8.0,
+            "latency_s": 7.292111873626709,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "fastapi_endpoint",
+            "system": "sonnet",
+            "score": 9.0,
+            "latency_s": 4.118585109710693,
+            "cost_usd": 0.0
+        },
+        {
+            "prompt_id": "fastapi_endpoint",
+            "system": "gpt4o_mini",
+            "score": 4.0,
+            "latency_s": 2.3630521297454834,
+            "cost_usd": 0.000113008
+        }
+    ],
+    "aggregate": {
+        "fleet": {
+            "mean_score": 8.375,
+            "mean_latency_s": 17.474650591611862,
+            "total_cost_usd": 0.0
+        },
+        "sonnet": {
+            "mean_score": 8.875,
+            "mean_latency_s": 5.222172498703003,
+            "total_cost_usd": 0.007727939999999999
+        },
+        "gpt4o_mini": {
+            "mean_score": 7.5,
+            "mean_latency_s": 3.472110688686371,
+            "total_cost_usd": 0.00038253500000000004
+        }
+    }
+}
