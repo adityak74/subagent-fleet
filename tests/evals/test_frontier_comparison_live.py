@@ -6,10 +6,15 @@ scored blind by an LLM judge (Sonnet 5 via OpenRouter).
 
 Requires: --run-live AND OPENROUTER_API_KEY set. Also requires the live
 3-node fleet + LiteLLM gateway to be running (see fleet.yaml).
+
+Note: test_frontier_comparison_aggregate_report depends on _RESULTS being
+populated by every test_frontier_comparison_prompt invocation, so this file
+must be run in full without -k filtering or pytest-xdist parallelization.
 """
 
 from __future__ import annotations
 
+import hashlib
 import os
 import random
 import time
@@ -100,7 +105,8 @@ def test_frontier_comparison_prompt(
     gpt_cost = fetch_generation_cost(openrouter_client, gpt_gen_id, openrouter_api_key)
 
     names = ["fleet", "sonnet", "gpt4o_mini"]
-    labels = assign_labels(names, random.Random(hash(prompt_entry["id"]) % (2**32)))
+    seed = int.from_bytes(hashlib.sha256(prompt_entry["id"].encode()).digest()[:4], "big")
+    labels = assign_labels(names, random.Random(seed))
     contents = {"fleet": fleet_content, "sonnet": sonnet_content, "gpt4o_mini": gpt_content}
     labeled_responses = {labels[name]: contents[name] for name in names}
 
@@ -132,8 +138,12 @@ def test_frontier_comparison_prompt(
 
 def test_frontier_comparison_aggregate_report(openrouter_api_key):
     """Aggregate: fleet's mean score is within 20% of the best frontier mean."""
-    if not _RESULTS:
-        pytest.skip("no per-prompt results collected — run test_frontier_comparison_prompt first")
+    expected_result_count = len(PROMPTS) * 3
+    if len(_RESULTS) != expected_result_count:
+        pytest.skip(
+            f"incomplete results: {len(_RESULTS)}/{expected_result_count} — "
+            "run the full file without -k/-n filtering so all prompt tests populate _RESULTS"
+        )
 
     write_json_report(_RESULTS, REPORT_PATH)
     table = format_markdown_table(_RESULTS)
