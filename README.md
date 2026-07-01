@@ -141,6 +141,31 @@ cd src
 python -m pytest tests/evals/ --tb=short
 ```
 
+### Fleet vs. Frontier Models
+
+We ran a head-to-head coding eval: 8 real coding tasks (bug fixes, an LRU cache, a rate limiter, N+1 query fixes, FastAPI endpoints, and more), sent to the local fleet (routed through the LiteLLM gateway) and to Claude Sonnet 5 and GPT-4o-mini (via OpenRouter), then scored blind by an LLM judge on a 0-10 rubric (correctness, code quality, completeness).
+
+```text
+| System      | Mean Score | Mean Latency (s) | Total Cost (USD) |
+|-------------|-----------:|------------------:|------------------:|
+| fleet       |       8.38 |             17.47 |            $0.0000 |
+| sonnet-5    |       8.88 |              5.22 |            $0.0077 |
+| gpt-4o-mini |       7.50 |              3.47 |            $0.0004 |
+```
+
+The fleet scored **94% of Sonnet 5's quality at $0 marginal cost**, and beat GPT-4o-mini's mean score outright. It passed 7 of 8 individual prompts against the "within 80% of best frontier score" bar — the one miss (`pytest_unit_tests`, generating edge-case test coverage) is a genuine, specific gap the eval surfaced rather than a fluke.
+
+Full per-prompt results (score, latency, cost per model per prompt): [`docs/evals/frontier-comparison-2026-06-30.json`](docs/evals/frontier-comparison-2026-06-30.json).
+
+Run it yourself against your own fleet:
+
+```bash
+export OPENROUTER_API_KEY=<your-key>
+export LITELLM_MASTER_KEY=<your-fleet-master-key>
+litellm --config ./litellm_config.yaml &   # start your fleet's gateway
+python -m pytest tests/evals/test_frontier_comparison_live.py --run-live -v -s
+```
+
 ## Features
 
 - Monitor node health in real time — unreachable nodes are isolated automatically.
